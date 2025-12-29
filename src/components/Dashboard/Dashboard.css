@@ -119,6 +119,17 @@
   font-weight: 600;
 }
 
+.casino-header {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
 .casino-row {
   display: flex;
   align-items: center;
@@ -135,11 +146,25 @@
 .casino-name {
   flex: 1;
   font-weight: 500;
+  min-width: 120px;
 }
 
 .casino-sessions {
+  width: 70px;
+  text-align: right;
   color: var(--text-secondary);
-  margin-right: 16px;
+}
+
+.casino-deposits {
+  width: 100px;
+  text-align: right;
+  color: var(--text-primary);
+}
+
+.casino-withdrawals {
+  width: 100px;
+  text-align: right;
+  color: var(--text-primary);
 }
 
 .casino-result {

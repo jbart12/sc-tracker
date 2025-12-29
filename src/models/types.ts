@@ -75,6 +75,8 @@ export interface YTDStats {
 export interface CasinoStats {
   casino: Casino;
   sessionCount: number;
+  totalDeposits: number;
+  totalWithdrawals: number;
   netResult: number;
   rtpPercentage: number | null;
 }

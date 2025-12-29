@@ -57,6 +57,8 @@ export function Dashboard() {
         const casinoSessions = filterByCasino(yearSessions, casino.id);
         if (casinoSessions.length === 0) return null;
 
+        // Total deposits includes all sessions
+        const totalDeposits = casinoSessions.reduce((sum, s) => sum + s.depositAmount, 0);
         // Only calculate net from completed sessions
         const completedSessions = casinoSessions.filter(s => !isPending(s));
         const completedDeposits = completedSessions.reduce((sum, s) => sum + s.depositAmount, 0);
@@ -65,6 +67,8 @@ export function Dashboard() {
         return {
           casino,
           sessionCount: casinoSessions.length,
+          totalDeposits,
+          totalWithdrawals,
           netResult: totalWithdrawals - completedDeposits,
           rtpPercentage: calculateRTP(completedDeposits, totalWithdrawals),
         };
@@ -139,10 +143,20 @@ export function Dashboard() {
       {casinoStats.length > 0 && (
         <div className="casino-breakdown">
           <h3>By Casino</h3>
+          <div className="casino-header">
+            <span className="casino-name">Casino</span>
+            <span className="casino-sessions">Sessions</span>
+            <span className="casino-deposits">Deposits</span>
+            <span className="casino-withdrawals">Withdrawals</span>
+            <span className="casino-result">Net</span>
+            <span className="casino-rtp">RTP</span>
+          </div>
           {casinoStats.map(stat => (
             <div key={stat.casino.id} className="casino-row">
               <span className="casino-name">{stat.casino.name}</span>
-              <span className="casino-sessions">{stat.sessionCount} sessions</span>
+              <span className="casino-sessions">{stat.sessionCount}</span>
+              <span className="casino-deposits">{formatCurrency(stat.totalDeposits)}</span>
+              <span className="casino-withdrawals">{formatCurrency(stat.totalWithdrawals)}</span>
               <span className={`casino-result ${stat.netResult >= 0 ? 'positive' : 'negative'}`}>
                 {formatCurrency(stat.netResult)}
               </span>
