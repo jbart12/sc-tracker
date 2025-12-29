@@ -1,0 +1,288 @@
+.sessions {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.sessions-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--border-color);
+  flex-wrap: wrap;
+}
+
+.search-box {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.search-box input {
+  padding: 8px 32px 8px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  width: 200px;
+}
+
+.search-box .clear-search {
+  position: absolute;
+  right: 8px;
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 1.2rem;
+  padding: 0;
+  line-height: 1;
+}
+
+.sessions-toolbar select {
+  padding: 8px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+.toolbar-spacer {
+  flex: 1;
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  padding: 48px;
+  text-align: center;
+}
+
+.empty-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+.empty-state h3 {
+  margin: 0 0 8px 0;
+  font-size: 1.25rem;
+}
+
+.empty-state p {
+  margin: 0 0 16px 0;
+  color: var(--text-secondary);
+}
+
+.sessions-table {
+  flex: 1;
+  overflow: auto;
+  padding: 0 24px 24px;
+}
+
+.sessions-table table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.sessions-table th,
+.sessions-table td {
+  padding: 12px 16px;
+  text-align: left;
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-primary);
+}
+
+.sessions-table th {
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  background: var(--bg-secondary);
+  position: sticky;
+  top: 0;
+}
+
+.sessions-table tr:nth-child(even) {
+  background: var(--bg-secondary);
+}
+
+.sessions-table tr:hover {
+  background: var(--bg-tertiary);
+}
+
+.sessions-table .number {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.sessions-table .positive {
+  color: var(--color-success);
+}
+
+.sessions-table .negative {
+  color: var(--color-danger);
+}
+
+.sessions-table .pending {
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+.sessions-table .actions {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.btn-icon {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px 8px;
+  font-size: 1rem;
+  opacity: 0.6;
+  transition: opacity 0.2s;
+}
+
+.btn-icon:hover {
+  opacity: 1;
+}
+
+.btn-icon.danger:hover {
+  opacity: 1;
+}
+
+/* Selection mode styles */
+.btn-secondary.active {
+  background: var(--color-primary);
+  color: white;
+  border-color: var(--color-primary);
+}
+
+.selection-bar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 24px;
+  background: var(--color-primary-light);
+  border-bottom: 1px solid var(--color-primary);
+}
+
+.selection-count {
+  font-weight: 600;
+  color: var(--color-primary);
+}
+
+.selection-summary {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+}
+
+.selection-actions {
+  margin-left: auto;
+}
+
+.checkbox-col {
+  width: 40px;
+  text-align: center;
+}
+
+.checkbox-col input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: var(--color-primary);
+}
+
+.sessions-table tr.selected {
+  background: var(--color-primary-light) !important;
+}
+
+.sessions-table tr {
+  cursor: default;
+}
+
+.sessions-table tbody tr[onclick] {
+  cursor: pointer;
+}
+
+/* Inline editing styles */
+.withdrawal-cell {
+  min-width: 120px;
+}
+
+.editable-value {
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: background 0.2s;
+}
+
+.editable-value:hover {
+  background: var(--bg-tertiary);
+}
+
+.inline-edit {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  justify-content: flex-end;
+}
+
+.inline-edit input {
+  width: 80px;
+  padding: 4px 8px;
+  border: 1px solid var(--color-primary);
+  border-radius: 4px;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  text-align: right;
+  font-size: 0.875rem;
+  -moz-appearance: textfield;
+}
+
+.inline-edit input::-webkit-outer-spin-button,
+.inline-edit input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.inline-edit input:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--color-primary-light);
+}
+
+.btn-save {
+  padding: 4px 8px;
+  background: var(--color-primary);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.btn-save:hover {
+  opacity: 0.9;
+}
+
+.btn-cancel {
+  padding: 4px 6px;
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.btn-cancel:hover {
+  color: var(--text-primary);
+}
+
+.sessions-table tr.editing {
+  background: var(--bg-tertiary) !important;
+}

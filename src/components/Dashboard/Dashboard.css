@@ -1,0 +1,163 @@
+.dashboard {
+  padding: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.dashboard-header h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.year-picker {
+  padding: 8px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.stat-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.stat-card {
+  background: var(--bg-secondary);
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.stat-title {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+
+.stat-value {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.stat-value.positive {
+  color: var(--color-success);
+}
+
+.stat-value.negative {
+  color: var(--color-danger);
+}
+
+.tax-preview {
+  background: var(--bg-secondary);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 24px;
+}
+
+.tax-preview h3 {
+  margin: 0 0 16px 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+
+.tax-columns {
+  display: flex;
+  gap: 24px;
+}
+
+.tax-column {
+  flex: 1;
+}
+
+.tax-column h4 {
+  margin: 0 0 12px 0;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+.tax-divider {
+  width: 1px;
+  background: var(--border-color);
+}
+
+.tax-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  font-size: 0.875rem;
+}
+
+.tax-note {
+  margin: 16px 0 0 0;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.casino-breakdown {
+  background: var(--bg-secondary);
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.casino-breakdown h3 {
+  margin: 0 0 16px 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+
+.casino-row {
+  display: flex;
+  align-items: center;
+  padding: 12px;
+  background: var(--bg-tertiary);
+  border-radius: 8px;
+  margin-bottom: 8px;
+}
+
+.casino-row:last-child {
+  margin-bottom: 0;
+}
+
+.casino-name {
+  flex: 1;
+  font-weight: 500;
+}
+
+.casino-sessions {
+  color: var(--text-secondary);
+  margin-right: 16px;
+}
+
+.casino-result {
+  width: 100px;
+  text-align: right;
+  font-weight: 500;
+}
+
+.casino-result.positive {
+  color: var(--color-success);
+}
+
+.casino-result.negative {
+  color: var(--color-danger);
+}
+
+.casino-rtp {
+  width: 60px;
+  text-align: right;
+  color: var(--text-secondary);
+}

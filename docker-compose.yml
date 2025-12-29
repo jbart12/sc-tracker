@@ -1,0 +1,7 @@
+services:
+  sc-tracker:
+    build: .
+    container_name: sc-tracker
+    ports:
+      - "${PORT:-3000}:80"
+    restart: unless-stopped
