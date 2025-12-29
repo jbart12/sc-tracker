@@ -7,7 +7,6 @@
 set -e
 
 PORT="${1:-3000}"
-CONTAINER_NAME="sc-tracker"
 
 # Colors for output
 RED='\033[0;31m'
@@ -24,18 +23,9 @@ if ! docker info > /dev/null 2>&1; then
     exit 1
 fi
 
-# Stop existing container if running
-if docker ps -q -f name="$CONTAINER_NAME" | grep -q .; then
-    echo -e "${YELLOW}Stopping existing container...${NC}"
-    docker stop "$CONTAINER_NAME" > /dev/null
-    sleep 1
-fi
-
-# Remove existing container if exists
-if docker ps -aq -f name="$CONTAINER_NAME" | grep -q .; then
-    echo -e "${YELLOW}Removing existing container...${NC}"
-    docker rm "$CONTAINER_NAME" > /dev/null
-fi
+# Stop and remove existing containers
+echo -e "${YELLOW}Stopping existing containers...${NC}"
+docker compose down > /dev/null 2>&1 || true
 
 # Check if port is in use (only LISTEN state)
 if lsof -i :"$PORT" -sTCP:LISTEN > /dev/null 2>&1; then
@@ -47,6 +37,9 @@ if lsof -i :"$PORT" -sTCP:LISTEN > /dev/null 2>&1; then
     exit 1
 fi
 
+# Create data directory if it doesn't exist
+mkdir -p data
+
 # Build and start
 echo -e "${GREEN}Building and starting SC Tracker on port $PORT...${NC}"
 PORT="$PORT" docker compose up --build -d
@@ -54,8 +47,9 @@ PORT="$PORT" docker compose up --build -d
 echo ""
 echo -e "${GREEN}SC Tracker is running!${NC}"
 echo -e "Open in browser: ${GREEN}http://localhost:$PORT${NC}"
+echo -e "Data stored in: ${GREEN}./data/sc-tracker-data.json${NC}"
 echo ""
 echo "Commands:"
-echo "  Stop:    docker stop $CONTAINER_NAME"
-echo "  Logs:    docker logs $CONTAINER_NAME"
+echo "  Stop:    docker compose down"
+echo "  Logs:    docker compose logs -f"
 echo "  Restart: ./start.sh $PORT"

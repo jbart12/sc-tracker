@@ -1,0 +1,155 @@
+{
+  "sessions": [
+    {
+      "date": "2025-12-29T12:00:00.000Z",
+      "casinoID": "bc3915e7-2efb-43f5-adc6-52e5133e7c03",
+      "depositAmount": 9000,
+      "withdrawalAmount": 0,
+      "id": "seed-session-0001"
+    },
+    {
+      "date": "2025-12-24T12:00:00.000Z",
+      "casinoID": "bc3915e7-2efb-43f5-adc6-52e5133e7c03",
+      "depositAmount": 9000,
+      "withdrawalAmount": 8996.27,
+      "id": "seed-session-0002"
+    },
+    {
+      "date": "2025-12-23T12:00:00.000Z",
+      "casinoID": "bc3915e7-2efb-43f5-adc6-52e5133e7c03",
+      "depositAmount": 8000,
+      "withdrawalAmount": 7941.45,
+      "id": "seed-session-0003"
+    },
+    {
+      "date": "2025-12-22T12:00:00.000Z",
+      "casinoID": "bc3915e7-2efb-43f5-adc6-52e5133e7c03",
+      "depositAmount": 8000,
+      "withdrawalAmount": 7835.86,
+      "id": "seed-session-0004"
+    },
+    {
+      "date": "2025-12-19T12:00:00.000Z",
+      "casinoID": "bc3915e7-2efb-43f5-adc6-52e5133e7c03",
+      "depositAmount": 8000,
+      "withdrawalAmount": 8011,
+      "id": "seed-session-0005"
+    },
+    {
+      "date": "2025-12-18T12:00:00.000Z",
+      "casinoID": "bc3915e7-2efb-43f5-adc6-52e5133e7c03",
+      "depositAmount": 8000,
+      "withdrawalAmount": 7743.37,
+      "id": "seed-session-0006"
+    },
+    {
+      "date": "2025-12-17T12:00:00.000Z",
+      "casinoID": "bc3915e7-2efb-43f5-adc6-52e5133e7c03",
+      "depositAmount": 8000,
+      "withdrawalAmount": 7934,
+      "id": "seed-session-0007"
+    },
+    {
+      "date": "2025-12-16T12:00:00.000Z",
+      "casinoID": "bc3915e7-2efb-43f5-adc6-52e5133e7c03",
+      "depositAmount": 5000,
+      "withdrawalAmount": 5000,
+      "id": "seed-session-0008"
+    },
+    {
+      "date": "2025-12-15T12:00:00.000Z",
+      "casinoID": "bc3915e7-2efb-43f5-adc6-52e5133e7c03",
+      "depositAmount": 5000,
+      "withdrawalAmount": 10000,
+      "id": "seed-session-0009"
+    },
+    {
+      "date": "2025-12-12T12:00:00.000Z",
+      "casinoID": "bc3915e7-2efb-43f5-adc6-52e5133e7c03",
+      "depositAmount": 5000,
+      "withdrawalAmount": 4830,
+      "id": "seed-session-0010"
+    },
+    {
+      "date": "2025-12-11T12:00:00.000Z",
+      "casinoID": "bc3915e7-2efb-43f5-adc6-52e5133e7c03",
+      "depositAmount": 5000,
+      "withdrawalAmount": 4846,
+      "id": "seed-session-0011"
+    },
+    {
+      "date": "2025-12-10T12:00:00.000Z",
+      "casinoID": "bc3915e7-2efb-43f5-adc6-52e5133e7c03",
+      "depositAmount": 5000,
+      "withdrawalAmount": 4909.89,
+      "id": "seed-session-0012"
+    },
+    {
+      "date": "2025-12-09T12:00:00.000Z",
+      "casinoID": "bc3915e7-2efb-43f5-adc6-52e5133e7c03",
+      "depositAmount": 2000,
+      "withdrawalAmount": 2024,
+      "id": "seed-session-0013"
+    },
+    {
+      "date": "2025-12-08T12:00:00.000Z",
+      "casinoID": "bc3915e7-2efb-43f5-adc6-52e5133e7c03",
+      "depositAmount": 2000,
+      "withdrawalAmount": 1894,
+      "id": "seed-session-0014"
+    },
+    {
+      "id": "6a9209da-e630-4a65-a6fe-8295fab99c3e",
+      "date": "2025-12-05T12:00:00.000Z",
+      "casinoID": "bc3915e7-2efb-43f5-adc6-52e5133e7c03",
+      "depositAmount": 4000,
+      "withdrawalAmount": 3901.57,
+      "notes": "Combined 2 sessions (12/5/2025 - 12/6/2025)"
+    },
+    {
+      "date": "2025-12-16T12:00:00.000Z",
+      "casinoID": "003df684-2196-4881-af5b-154a3e15d131",
+      "depositAmount": 2099.93,
+      "withdrawalAmount": 2180,
+      "id": "mcluck-session-0001"
+    },
+    {
+      "date": "2025-12-15T12:00:00.000Z",
+      "casinoID": "003df684-2196-4881-af5b-154a3e15d131",
+      "depositAmount": 1199.96,
+      "withdrawalAmount": 1040,
+      "id": "mcluck-session-0002"
+    }
+  ],
+  "casinos": [
+    {
+      "id": "bc3915e7-2efb-43f5-adc6-52e5133e7c03",
+      "name": "Stake.us",
+      "isActive": true,
+      "depositPresets": [
+        20,
+        50,
+        100,
+        200,
+        300,
+        500,
+        1000,
+        2000
+      ]
+    },
+    {
+      "id": "390bec00-8001-4f3a-8418-e9bc14eba3da",
+      "name": "CrownCoinCasino",
+      "isActive": true,
+      "depositPresets": []
+    },
+    {
+      "id": "003df684-2196-4881-af5b-154a3e15d131",
+      "name": "McLuck",
+      "isActive": true,
+      "depositPresets": []
+    }
+  ],
+  "creditCards": [],
+  "schemaVersion": 5
+}

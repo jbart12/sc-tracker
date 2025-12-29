@@ -1,6 +1,7 @@
 import type { AppData, Casino, Session } from '../models/types';
 
 const STORAGE_KEY = 'sc-tracker-data';
+const API_BASE = '/api';
 const CURRENT_SCHEMA_VERSION = 5;
 
 const STAKE_US_PRESETS = [20, 50, 100, 200, 300, 500, 1000, 2000];
@@ -156,26 +157,104 @@ function migrate(data: AppData): AppData {
   return migrated;
 }
 
-export function loadAppData(): AppData {
+// Load from localStorage (for migration)
+function loadFromLocalStorage(): AppData | null {
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
-    if (!stored) {
-      return getDefaultAppData();
+    if (!stored) return null;
+    return JSON.parse(stored) as AppData;
+  } catch {
+    return null;
+  }
+}
+
+// Clear localStorage after successful migration
+function clearLocalStorage(): void {
+  try {
+    localStorage.removeItem(STORAGE_KEY);
+  } catch {
+    // Ignore errors
+  }
+}
+
+// Load data from API
+export async function loadAppDataAsync(): Promise<AppData> {
+  try {
+    const response = await fetch(`${API_BASE}/data`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch data from API');
     }
-    const data = JSON.parse(stored) as AppData;
-    return migrate(data);
+
+    const apiData = await response.json();
+
+    if (apiData) {
+      // Data exists in file, migrate if needed
+      return migrate(apiData);
+    }
+
+    // No data in file - check localStorage for migration
+    const localData = loadFromLocalStorage();
+    if (localData) {
+      console.log('Migrating data from localStorage to file storage...');
+      const migrated = migrate(localData);
+      // Save to file and clear localStorage
+      await saveAppDataAsync(migrated);
+      clearLocalStorage();
+      console.log('Migration complete!');
+      return migrated;
+    }
+
+    // No data anywhere - return defaults
+    return getDefaultAppData();
   } catch (error) {
-    console.error('Failed to load app data:', error);
+    console.error('Failed to load from API, falling back to localStorage:', error);
+    // Fallback to localStorage if API fails
+    const localData = loadFromLocalStorage();
+    if (localData) {
+      return migrate(localData);
+    }
     return getDefaultAppData();
   }
 }
 
-export function saveAppData(data: AppData): void {
+// Save data to API
+export async function saveAppDataAsync(data: AppData): Promise<void> {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    const response = await fetch(`${API_BASE}/data`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to save data to API');
+    }
   } catch (error) {
-    console.error('Failed to save app data:', error);
+    console.error('Failed to save to API, saving to localStorage as backup:', error);
+    // Fallback to localStorage if API fails
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    } catch (localError) {
+      console.error('Failed to save to localStorage:', localError);
+    }
   }
+}
+
+// Synchronous versions for backward compatibility during initial load
+export function loadAppData(): AppData {
+  const localData = loadFromLocalStorage();
+  if (localData) {
+    return migrate(localData);
+  }
+  return getDefaultAppData();
+}
+
+export function saveAppData(data: AppData): void {
+  // This is now a no-op for sync saves - we use async saves
+  // But keep it to prevent errors during transition
+  saveAppDataAsync(data).catch(console.error);
 }
 
 export function generateId(): string {

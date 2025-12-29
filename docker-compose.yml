@@ -4,4 +4,18 @@ services:
     container_name: sc-tracker
     ports:
       - "${PORT:-3000}:80"
+    depends_on:
+      - api
+    restart: unless-stopped
+
+  api:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: sc-tracker-api
+    volumes:
+      - ./data:/data
+    environment:
+      - PORT=3001
+      - DATA_FILE=/data/sc-tracker-data.json
     restart: unless-stopped

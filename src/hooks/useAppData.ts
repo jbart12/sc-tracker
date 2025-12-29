@@ -1,13 +1,30 @@
 import { useState, useEffect, useCallback } from 'react';
 import type { AppData, Session, Casino, CreditCard } from '../models/types';
-import { loadAppData, saveAppData, generateId } from '../services/persistence';
+import { loadAppData, loadAppDataAsync, saveAppDataAsync, generateId } from '../services/persistence';
 
 export function useAppData() {
   const [data, setData] = useState<AppData>(() => loadAppData());
+  const [isLoading, setIsLoading] = useState(true);
 
+  // Load data from API on mount
   useEffect(() => {
-    saveAppData(data);
-  }, [data]);
+    loadAppDataAsync()
+      .then(apiData => {
+        setData(apiData);
+        setIsLoading(false);
+      })
+      .catch(error => {
+        console.error('Failed to load data:', error);
+        setIsLoading(false);
+      });
+  }, []);
+
+  // Save data to API whenever it changes (after initial load)
+  useEffect(() => {
+    if (!isLoading) {
+      saveAppDataAsync(data).catch(console.error);
+    }
+  }, [data, isLoading]);
 
   // Sessions
   const addSession = useCallback((session: Omit<Session, 'id'>) => {
@@ -144,6 +161,7 @@ export function useAppData() {
 
   return {
     data,
+    isLoading,
     addSession,
     updateSession,
     deleteSession,
