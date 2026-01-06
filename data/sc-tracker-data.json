@@ -4,7 +4,7 @@
       "date": "2025-12-29T12:00:00.000Z",
       "casinoID": "bc3915e7-2efb-43f5-adc6-52e5133e7c03",
       "depositAmount": 9000,
-      "withdrawalAmount": 0,
+      "withdrawalAmount": 8891,
       "id": "seed-session-0001"
     },
     {
@@ -119,6 +119,27 @@
       "depositAmount": 1199.96,
       "withdrawalAmount": 1040,
       "id": "mcluck-session-0002"
+    },
+    {
+      "date": "2025-12-30T12:00:00.000Z",
+      "casinoID": "bc3915e7-2efb-43f5-adc6-52e5133e7c03",
+      "depositAmount": 9000,
+      "withdrawalAmount": 8516,
+      "id": "00e84263-3f4f-47f4-8e70-95df6d0e12ed"
+    },
+    {
+      "date": "2025-12-31T12:00:00.000Z",
+      "casinoID": "bc3915e7-2efb-43f5-adc6-52e5133e7c03",
+      "depositAmount": 6000,
+      "withdrawalAmount": 5843,
+      "id": "01738cbc-6bc0-4355-8785-0db65e16a717"
+    },
+    {
+      "date": "2026-01-05T12:00:00.000Z",
+      "casinoID": "bc3915e7-2efb-43f5-adc6-52e5133e7c03",
+      "depositAmount": 9000,
+      "withdrawalAmount": 8950.96,
+      "id": "4c0d7d0f-6b69-493f-9ad2-a37a9bfc05be"
     }
   ],
   "casinos": [
