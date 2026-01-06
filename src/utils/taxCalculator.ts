@@ -1,8 +1,29 @@
 import type { Session, CreditCard, TaxCalculation, FilingStatus, ItemizationAnalysis } from '../models/types';
 import { filterByYear, isWin, isLoss, isPending, getWinAmount, getLossAmount, getTotalDeposit } from './sessionUtils';
 
-const INDIANA_TAX_RATE = 0.0323;
+// Indiana state tax rates (decreasing annually)
+const INDIANA_STATE_TAX_RATES: Record<number, number> = {
+  2024: 0.0305,
+  2025: 0.0300,
+  2026: 0.0295,
+  2027: 0.0290, // Planned future rate
+};
+
+// Warrick County tax rate (flat)
+const WARRICK_COUNTY_TAX_RATE = 0.0050;
+
+// Federal tax rate (user's marginal bracket - married filing jointly 24%)
+const FEDERAL_TAX_RATE = 0.24;
+
 const OBBBA_START_YEAR = 2026;
+
+function getIndianaStateRate(year: number): number {
+  if (year in INDIANA_STATE_TAX_RATES) {
+    return INDIANA_STATE_TAX_RATES[year];
+  }
+  // Default to latest known rate for future years
+  return year > 2027 ? 0.0290 : 0.0305;
+}
 
 export function calculateTax(
   sessions: Session[],
@@ -25,10 +46,19 @@ export function calculateTax(
   // Federal deductible losses
   const federalDeductibleLosses = calculateFederalDeductibleLosses(year, grossWinnings, grossLosses);
   const federalTaxableIncome = grossWinnings - federalDeductibleLosses;
+  const federalTaxRate = FEDERAL_TAX_RATE;
+  const federalTaxOwed = federalTaxableIncome * federalTaxRate;
 
   // Indiana: No loss deduction for amateur gamblers
   const indianaTaxableIncome = grossWinnings;
-  const indianaStateTax = indianaTaxableIncome * INDIANA_TAX_RATE;
+  const indianaStateRate = getIndianaStateRate(year);
+  const indianaCountyRate = WARRICK_COUNTY_TAX_RATE;
+  const indianaStateTax = indianaTaxableIncome * indianaStateRate;
+  const indianaCountyTax = indianaTaxableIncome * indianaCountyRate;
+  const indianaTotalTax = indianaStateTax + indianaCountyTax;
+
+  // Total tax owed (federal + state + county)
+  const totalTaxOwed = federalTaxOwed + indianaTotalTax;
 
   // Cashback calculation (include all sessions since deposits still earn cashback)
   const estimatedCashback = calculateCashback(yearSessions, creditCards);
@@ -47,8 +77,15 @@ export function calculateTax(
     netResult,
     federalDeductibleLosses,
     federalTaxableIncome,
+    federalTaxRate,
+    federalTaxOwed,
     indianaTaxableIncome,
+    indianaStateRate,
     indianaStateTax,
+    indianaCountyRate,
+    indianaCountyTax,
+    indianaTotalTax,
+    totalTaxOwed,
     estimatedCashback,
     totalSessions: completedSessions.length,
     winningSessions,
@@ -63,14 +100,12 @@ export function calculateFederalDeductibleLosses(
   losses: number
 ): number {
   if (year >= OBBBA_START_YEAR) {
-    // OBBBA: Lesser of 90% of losses OR 90% of gains
+    // OBBBA (effective 2026): Only 90% of losses are deductible, still capped by winnings
+    // See: https://taxfoundation.org/blog/gambling-losses-tax-big-beautiful-bill/
     const ninetyPercentLosses = losses * 0.9;
-    const ninetyPercentGains = winnings * 0.9;
-    const cap = Math.min(ninetyPercentLosses, ninetyPercentGains);
-    // Can't deduct more than actual losses
-    return Math.min(losses, cap);
+    return Math.min(ninetyPercentLosses, winnings);
   } else {
-    // Pre-2026: Losses up to winnings
+    // Pre-2026: Losses deductible up to winnings (100%)
     return Math.min(losses, winnings);
   }
 }

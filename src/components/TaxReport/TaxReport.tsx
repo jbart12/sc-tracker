@@ -133,22 +133,57 @@ export function TaxReport() {
       <section className="tax-section">
         <h3>Federal Tax</h3>
         <div className="tax-details">
-          <LabeledRow label="Gross Winnings" value={formatCurrency(taxCalculation.grossWinnings)} />
+          <LabeledRow label="Gross Winnings (Taxable Income)" value={formatCurrency(taxCalculation.grossWinnings)} />
           <LabeledRow label="Gross Losses" value={formatCurrency(taxCalculation.grossLosses)} />
+          {selectedYear >= 2026 && taxCalculation.grossLosses > 0 && (
+            <>
+              <div className="divider" />
+              <LabeledRow
+                label="90% of Losses (OBBBA Limit)"
+                value={formatCurrency(taxCalculation.grossLosses * 0.9)}
+                help="Only 90% of gambling losses are deductible starting 2026"
+              />
+              <LabeledRow
+                label="Non-Deductible (10% Haircut)"
+                value={formatCurrency(taxCalculation.grossLosses * 0.1)}
+                className="negative"
+              />
+            </>
+          )}
           <div className="divider" />
           <LabeledRow
-            label="Deductible Losses (Schedule A)"
+            label={selectedYear >= 2026 ? "Deductible Losses (OBBBA 90%)" : "Deductible Losses (Schedule A)"}
             value={formatCurrency(taxCalculation.federalDeductibleLosses)}
-            help="Losses you can deduct if you itemize"
+            help={selectedYear >= 2026
+              ? "90% of losses, capped by winnings"
+              : "Losses up to winnings amount"}
+            highlighted
           />
           <LabeledRow
             label="Federal Taxable Gambling Income"
             value={formatCurrency(taxCalculation.federalTaxableIncome)}
+          />
+          <div className="divider" />
+          <LabeledRow
+            label={`Federal Tax Owed (${(taxCalculation.federalTaxRate * 100).toFixed(0)}% bracket)`}
+            value={formatCurrency(taxCalculation.federalTaxOwed)}
             highlighted
           />
+          {selectedYear >= 2026 && taxCalculation.grossLosses > 0 && (
+            <LabeledRow
+              label="Extra Tax Due to OBBBA"
+              value={formatCurrency(Math.min(taxCalculation.grossLosses * 0.1, taxCalculation.grossWinnings) * taxCalculation.federalTaxRate)}
+              help="Additional federal tax from non-deductible 10% of losses"
+              className="negative"
+            />
+          )}
         </div>
         {selectedYear >= 2026 && (
-          <p className="warning">OBBBA 90% deduction cap applied (effective 2026)</p>
+          <div className="warning-box">
+            <strong>OBBBA 90% Cap (In Effect)</strong>
+            <p>The One Big Beautiful Bill Act limits gambling loss deductions to 90% of losses.
+            You may owe tax on "phantom income" - money you never actually earned.</p>
+          </div>
         )}
         <p className="note">
           Note: Gambling losses can only be deducted if you itemize deductions on Schedule A.
@@ -156,22 +191,68 @@ export function TaxReport() {
       </section>
 
       <section className="tax-section">
-        <h3>Indiana State Tax</h3>
+        <h3>Indiana State & County Tax</h3>
         <div className="tax-details">
           <LabeledRow
             label="Taxable Income"
             value={formatCurrency(taxCalculation.indianaTaxableIncome)}
             help="Indiana taxes gross winnings without loss deduction"
           />
+          <div className="divider" />
           <LabeledRow
-            label="Estimated State Tax (3.23%)"
+            label={`State Tax (${(taxCalculation.indianaStateRate * 100).toFixed(2)}%)`}
             value={formatCurrency(taxCalculation.indianaStateTax)}
+          />
+          <LabeledRow
+            label={`Warrick County Tax (${(taxCalculation.indianaCountyRate * 100).toFixed(2)}%)`}
+            value={formatCurrency(taxCalculation.indianaCountyTax)}
+          />
+          <div className="divider" />
+          <LabeledRow
+            label={`Total Indiana Tax (${((taxCalculation.indianaStateRate + taxCalculation.indianaCountyRate) * 100).toFixed(2)}%)`}
+            value={formatCurrency(taxCalculation.indianaTotalTax)}
             highlighted
           />
         </div>
         <p className="warning">
           Indiana does NOT allow gambling loss deductions for amateur gamblers.
         </p>
+      </section>
+
+      <section className="tax-section total-tax-section">
+        <h3>Total Estimated Tax Liability</h3>
+        <div className="tax-details">
+          <LabeledRow
+            label={`Federal Tax (${(taxCalculation.federalTaxRate * 100).toFixed(0)}%)`}
+            value={formatCurrency(taxCalculation.federalTaxOwed)}
+          />
+          <LabeledRow
+            label={`Indiana State Tax (${(taxCalculation.indianaStateRate * 100).toFixed(2)}%)`}
+            value={formatCurrency(taxCalculation.indianaStateTax)}
+          />
+          <LabeledRow
+            label={`Warrick County Tax (${(taxCalculation.indianaCountyRate * 100).toFixed(2)}%)`}
+            value={formatCurrency(taxCalculation.indianaCountyTax)}
+          />
+          <div className="divider" />
+          <LabeledRow
+            label="Total Tax Owed"
+            value={formatCurrency(taxCalculation.totalTaxOwed)}
+            highlighted
+            className="total-row"
+          />
+          <LabeledRow
+            label="After-Tax Net (Gambling Result - Tax)"
+            value={formatCurrency(taxCalculation.netResult - taxCalculation.totalTaxOwed)}
+            className={taxCalculation.netResult - taxCalculation.totalTaxOwed >= 0 ? 'positive' : 'negative'}
+          />
+          <LabeledRow
+            label="After-Tax Net + Cashback"
+            value={formatCurrency(taxCalculation.netResult - taxCalculation.totalTaxOwed + taxCalculation.estimatedCashback)}
+            className={taxCalculation.netResult - taxCalculation.totalTaxOwed + taxCalculation.estimatedCashback >= 0 ? 'positive' : 'negative'}
+            highlighted
+          />
+        </div>
       </section>
 
       <section className="tax-section">
@@ -243,14 +324,14 @@ function MiniStat({ label, value, className = '' }: { label: string; value: numb
   );
 }
 
-function LabeledRow({ label, value, help, highlighted }: { label: string; value: string; help?: string; highlighted?: boolean }) {
+function LabeledRow({ label, value, help, highlighted, className }: { label: string; value: string; help?: string; highlighted?: boolean; className?: string }) {
   return (
-    <div className={`labeled-row ${highlighted ? 'highlighted' : ''}`}>
+    <div className={`labeled-row ${highlighted ? 'highlighted' : ''} ${className || ''}`}>
       <span className="label">
         {label}
         {help && <span className="help" title={help}>?</span>}
       </span>
-      <span className="value">{value}</span>
+      <span className={`value ${className || ''}`}>{value}</span>
     </div>
   );
 }

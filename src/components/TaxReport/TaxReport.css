@@ -243,3 +243,33 @@
 .negative {
   color: var(--color-danger);
 }
+
+.warning-box {
+  margin: 16px 0 0 0;
+  padding: 12px 16px;
+  background: rgba(245, 158, 11, 0.1);
+  border: 1px solid var(--color-warning);
+  border-radius: 8px;
+}
+
+.warning-box strong {
+  display: block;
+  color: var(--color-warning);
+  margin-bottom: 4px;
+}
+
+.warning-box p {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+.total-tax-section {
+  border: 2px solid var(--color-primary);
+}
+
+.total-row .value {
+  font-size: 1.25rem;
+  font-weight: 600;
+}

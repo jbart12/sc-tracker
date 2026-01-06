@@ -46,8 +46,15 @@ export interface TaxCalculation {
   netResult: number;
   federalDeductibleLosses: number;
   federalTaxableIncome: number;
+  federalTaxRate: number;
+  federalTaxOwed: number;
   indianaTaxableIncome: number;
+  indianaStateRate: number;
   indianaStateTax: number;
+  indianaCountyRate: number;
+  indianaCountyTax: number;
+  indianaTotalTax: number;
+  totalTaxOwed: number;
   estimatedCashback: number;
   totalSessions: number;
   winningSessions: number;
