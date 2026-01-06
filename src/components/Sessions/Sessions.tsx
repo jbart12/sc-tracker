@@ -292,6 +292,7 @@ export function Sessions() {
                 <th className="number">Cashback</th>
                 <th className="number">Net</th>
                 <th className="number">Net + CB</th>
+                <th className="number">Profit %</th>
                 <th className="number">RTP</th>
                 {!selectMode && <th></th>}
               </tr>
@@ -299,9 +300,11 @@ export function Sessions() {
             <tbody>
               {filteredSessions.map(session => {
                 const casino = getCasino(session.casinoID);
+                const deposit = getTotalDeposit(session);
                 const net = getNetResult(session);
                 const cashback = calculateSessionCashback(session, data.creditCards);
                 const netWithCashback = net + cashback;
+                const profitPercent = deposit > 0 ? (netWithCashback / deposit) * 100 : 0;
                 const rtp = getRtpPercentage(session);
                 const isSelected = selectedIds.has(session.id);
                 const isEditingWithdrawal = editingWithdrawalId === session.id;
@@ -324,7 +327,7 @@ export function Sessions() {
                     )}
                     <td>{formatDate(session.date)}</td>
                     <td>{casino?.name || 'Unknown'}</td>
-                    <td className="number">{formatCurrency(getTotalDeposit(session))}</td>
+                    <td className="number">{formatCurrency(deposit)}</td>
                     <td className="number withdrawal-cell">
                       {isEditingWithdrawal ? (
                         <div className="inline-edit">
@@ -377,6 +380,9 @@ export function Sessions() {
                     </td>
                     <td className={`number ${isPending(session) ? 'pending' : netWithCashback > 0 ? 'positive' : netWithCashback < 0 ? 'negative' : ''}`}>
                       {isPending(session) ? 'Pending' : formatCurrency(netWithCashback)}
+                    </td>
+                    <td className={`number ${isPending(session) ? 'pending' : profitPercent > 0 ? 'positive' : profitPercent < 0 ? 'negative' : ''}`}>
+                      {isPending(session) ? '-' : formatPercent(profitPercent)}
                     </td>
                     <td className="number">{isPending(session) ? '-' : rtp ? formatPercent(rtp) : '-'}</td>
                     {!selectMode && (
