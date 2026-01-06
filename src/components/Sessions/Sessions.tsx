@@ -1,7 +1,8 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
 import type { Session, SortOrder } from '../../models/types';
-import { getNetResult, isWin, isLoss, isPending, getRtpPercentage, sortByDateDescending, sortByDateAscending } from '../../utils/sessionUtils';
+import { getNetResult, isWin, isLoss, isPending, getRtpPercentage, sortByDateDescending, sortByDateAscending, getTotalDeposit } from '../../utils/sessionUtils';
+import { calculateSessionCashback } from '../../utils/taxCalculator';
 import { formatCurrency, formatDate, formatPercent } from '../../utils/formatters';
 import { SessionForm } from './SessionForm';
 import './Sessions.css';
@@ -37,7 +38,9 @@ export function Sessions() {
 
     // Filter by card
     if (cardFilter) {
-      sessions = sessions.filter(s => s.creditCardID === cardFilter);
+      sessions = sessions.filter(s =>
+        s.cardDeposits?.some(cd => cd.creditCardID === cardFilter)
+      );
     }
 
     // Filter by search text
@@ -45,10 +48,14 @@ export function Sessions() {
       const search = searchText.toLowerCase();
       sessions = sessions.filter(s => {
         const casino = getCasino(s.casinoID);
-        const card = getCreditCard(s.creditCardID);
+        // Check if any card name matches
+        const cardMatch = s.cardDeposits?.some(cd => {
+          const card = getCreditCard(cd.creditCardID);
+          return card?.name.toLowerCase().includes(search);
+        });
         return (
           casino?.name.toLowerCase().includes(search) ||
-          card?.name.toLowerCase().includes(search) ||
+          cardMatch ||
           s.notes?.toLowerCase().includes(search)
         );
       });
@@ -61,9 +68,9 @@ export function Sessions() {
       case 'dateAsc':
         return sortByDateAscending(sessions);
       case 'amountDesc':
-        return sessions.sort((a, b) => b.depositAmount - a.depositAmount);
+        return sessions.sort((a, b) => getTotalDeposit(b) - getTotalDeposit(a));
       case 'amountAsc':
-        return sessions.sort((a, b) => a.depositAmount - b.depositAmount);
+        return sessions.sort((a, b) => getTotalDeposit(a) - getTotalDeposit(b));
       default:
         return sessions;
     }
@@ -131,7 +138,7 @@ export function Sessions() {
   const selectionSummary = useMemo(() => {
     if (selectedIds.size === 0) return null;
     const selected = filteredSessions.filter(s => selectedIds.has(s.id));
-    const totalDeposit = selected.reduce((sum, s) => sum + s.depositAmount, 0);
+    const totalDeposit = selected.reduce((sum, s) => sum + getTotalDeposit(s), 0);
     const totalWithdrawal = selected.reduce((sum, s) => sum + s.withdrawalAmount, 0);
     return { count: selected.length, totalDeposit, totalWithdrawal };
   }, [selectedIds, filteredSessions]);
@@ -280,10 +287,11 @@ export function Sessions() {
                 )}
                 <th>Date</th>
                 <th>Casino</th>
-                <th>Card</th>
                 <th className="number">Deposit</th>
                 <th className="number">Withdrawal</th>
+                <th className="number">Cashback</th>
                 <th className="number">Net</th>
+                <th className="number">Net + CB</th>
                 <th className="number">RTP</th>
                 {!selectMode && <th></th>}
               </tr>
@@ -291,8 +299,9 @@ export function Sessions() {
             <tbody>
               {filteredSessions.map(session => {
                 const casino = getCasino(session.casinoID);
-                const card = getCreditCard(session.creditCardID);
                 const net = getNetResult(session);
+                const cashback = calculateSessionCashback(session, data.creditCards);
+                const netWithCashback = net + cashback;
                 const rtp = getRtpPercentage(session);
                 const isSelected = selectedIds.has(session.id);
                 const isEditingWithdrawal = editingWithdrawalId === session.id;
@@ -315,8 +324,7 @@ export function Sessions() {
                     )}
                     <td>{formatDate(session.date)}</td>
                     <td>{casino?.name || 'Unknown'}</td>
-                    <td>{card ? `${card.name}${card.lastFourDigits ? ` (...${card.lastFourDigits})` : ''}` : '-'}</td>
-                    <td className="number">{formatCurrency(session.depositAmount)}</td>
+                    <td className="number">{formatCurrency(getTotalDeposit(session))}</td>
                     <td className="number withdrawal-cell">
                       {isEditingWithdrawal ? (
                         <div className="inline-edit">
@@ -363,8 +371,12 @@ export function Sessions() {
                         </span>
                       )}
                     </td>
+                    <td className="number">{formatCurrency(cashback)}</td>
                     <td className={`number ${isPending(session) ? 'pending' : isWin(session) ? 'positive' : isLoss(session) ? 'negative' : ''}`}>
                       {isPending(session) ? 'Pending' : formatCurrency(net)}
+                    </td>
+                    <td className={`number ${isPending(session) ? 'pending' : netWithCashback > 0 ? 'positive' : netWithCashback < 0 ? 'negative' : ''}`}>
+                      {isPending(session) ? 'Pending' : formatCurrency(netWithCashback)}
                     </td>
                     <td className="number">{isPending(session) ? '-' : rtp ? formatPercent(rtp) : '-'}</td>
                     {!selectMode && (

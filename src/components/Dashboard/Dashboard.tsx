@@ -1,17 +1,22 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
 import { calculateTax, calculateRTP, calculateCashback } from '../../utils/taxCalculator';
-import { filterByYear, filterByCasino, isPending } from '../../utils/sessionUtils';
+import { filterByYear, filterByCasino, isPending, getTotalDeposit } from '../../utils/sessionUtils';
 import { formatCurrency, formatPercent } from '../../utils/formatters';
 import type { YTDStats, CasinoStats } from '../../models/types';
 import './Dashboard.css';
 
 export function Dashboard() {
-  const { data, yearsWithSessions } = useApp();
+  const { data, yearsWithSessions, isLoading } = useApp();
   const currentYear = new Date().getFullYear();
-  const [selectedYear, setSelectedYear] = useState(
-    yearsWithSessions.length > 0 ? yearsWithSessions[0] : currentYear
-  );
+  const [selectedYear, setSelectedYear] = useState(currentYear);
+
+  // Update selected year when data loads
+  useEffect(() => {
+    if (yearsWithSessions.length > 0 && !yearsWithSessions.includes(selectedYear)) {
+      setSelectedYear(yearsWithSessions[0]);
+    }
+  }, [yearsWithSessions, selectedYear]);
 
   const availableYears = useMemo(() => {
     const years = new Set(yearsWithSessions);
@@ -25,18 +30,20 @@ export function Dashboard() {
     const pendingCount = yearSessions.filter(isPending).length;
 
     // Total deposits includes all sessions
-    const totalDeposits = yearSessions.reduce((sum, s) => sum + s.depositAmount, 0);
+    const totalDeposits = yearSessions.reduce((sum, s) => sum + getTotalDeposit(s), 0);
     // Only count withdrawals and calculate net from completed sessions
     const totalWithdrawals = completedSessions.reduce((sum, s) => sum + s.withdrawalAmount, 0);
-    const completedDeposits = completedSessions.reduce((sum, s) => sum + s.depositAmount, 0);
+    const completedDeposits = completedSessions.reduce((sum, s) => sum + getTotalDeposit(s), 0);
     const netResult = totalWithdrawals - completedDeposits;
     const totalCashback = calculateCashback(yearSessions, data.creditCards);
+    const netWithCashback = netResult + totalCashback;
 
     return {
       sessionCount: yearSessions.length,
       totalDeposits,
       totalWithdrawals,
       netResult,
+      netWithCashback,
       rtpPercentage: calculateRTP(completedDeposits, totalWithdrawals),
       totalCashback,
       isProfit: netResult > 0,
@@ -58,10 +65,10 @@ export function Dashboard() {
         if (casinoSessions.length === 0) return null;
 
         // Total deposits includes all sessions
-        const totalDeposits = casinoSessions.reduce((sum, s) => sum + s.depositAmount, 0);
+        const totalDeposits = casinoSessions.reduce((sum, s) => sum + getTotalDeposit(s), 0);
         // Only calculate net from completed sessions
         const completedSessions = casinoSessions.filter(s => !isPending(s));
-        const completedDeposits = completedSessions.reduce((sum, s) => sum + s.depositAmount, 0);
+        const completedDeposits = completedSessions.reduce((sum, s) => sum + getTotalDeposit(s), 0);
         const totalWithdrawals = completedSessions.reduce((sum, s) => sum + s.withdrawalAmount, 0);
 
         return {
@@ -76,6 +83,10 @@ export function Dashboard() {
       .filter((s): s is CasinoStats => s !== null)
       .sort((a, b) => b.sessionCount - a.sessionCount);
   }, [data.sessions, data.casinos, selectedYear]);
+
+  if (isLoading) {
+    return <div className="dashboard"><p>Loading...</p></div>;
+  }
 
   return (
     <div className="dashboard">
@@ -100,6 +111,11 @@ export function Dashboard() {
           title="Net Result"
           value={formatCurrency(ytdStats.netResult)}
           valueClass={ytdStats.isProfit ? 'positive' : ytdStats.isLoss ? 'negative' : ''}
+        />
+        <StatCard
+          title="Net + Cashback"
+          value={formatCurrency(ytdStats.netWithCashback)}
+          valueClass={ytdStats.netWithCashback > 0 ? 'positive' : ytdStats.netWithCashback < 0 ? 'negative' : ''}
         />
         <StatCard
           title="RTP"

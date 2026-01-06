@@ -1,11 +1,16 @@
 // Core data types for SC Tracker
 
+export interface CardDeposit {
+  creditCardID: string;
+  amount: number;
+}
+
 export interface Session {
   id: string;
   date: string; // ISO date string
   casinoID: string;
-  creditCardID?: string;
-  depositAmount: number;
+  cardDeposits: CardDeposit[];  // Multi-card deposits
+  depositAmount: number;        // Computed total (for backward compat)
   withdrawalAmount: number;
   notes?: string;
 }
@@ -65,6 +70,7 @@ export interface YTDStats {
   totalDeposits: number;
   totalWithdrawals: number;
   netResult: number;
+  netWithCashback: number;  // Net result including cashback earnings
   rtpPercentage: number | null;
   totalCashback: number;
   isProfit: boolean;

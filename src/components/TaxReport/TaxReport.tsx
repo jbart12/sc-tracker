@@ -1,7 +1,8 @@
 import { useState, useMemo } from 'react';
 import { useApp } from '../../context/AppContext';
 import type { FilingStatus } from '../../models/types';
-import { calculateTax, analyzeItemization } from '../../utils/taxCalculator';
+import { calculateTax, analyzeItemization, calculateSessionCashback } from '../../utils/taxCalculator';
+import { getTotalDeposit } from '../../utils/sessionUtils';
 import { formatCurrency } from '../../utils/formatters';
 import './TaxReport.css';
 
@@ -31,20 +32,41 @@ export function TaxReport() {
   );
 
   const exportCSV = () => {
-    const headers = ['Date', 'Casino', 'Card', 'Deposit', 'Withdrawal', 'Net', 'Notes'];
+    const headers = ['Date', 'Casino', 'Cards', 'Deposit', 'Withdrawal', 'Net', 'Cashback', 'Notes'];
     const rows = data.sessions
       .filter(s => new Date(s.date).getFullYear() === selectedYear)
       .map(s => {
         const casino = data.casinos.find(c => c.id === s.casinoID);
-        const card = data.creditCards.find(c => c.id === s.creditCardID);
+
+        // Format card deposits
+        let cardsStr = '';
+        const totalDeposit = getTotalDeposit(s);
+        const sessionCashback = calculateSessionCashback(s, data.creditCards);
+
+        if (s.cardDeposits && Array.isArray(s.cardDeposits) && s.cardDeposits.length > 0) {
+          cardsStr = s.cardDeposits.map(cd => {
+            const card = data.creditCards.find(c => c.id === cd.creditCardID);
+            return card ? `${card.name}: $${cd.amount}` : `Unknown: $${cd.amount}`;
+          }).join('; ');
+        }
+
+        // Escape fields that might contain commas
+        const escapeField = (field: string) => {
+          if (field.includes(',') || field.includes('"')) {
+            return `"${field.replace(/"/g, '""')}"`;
+          }
+          return field;
+        };
+
         return [
           new Date(s.date).toLocaleDateString(),
-          casino?.name || 'Unknown',
-          card?.name || '',
-          s.depositAmount,
-          s.withdrawalAmount,
-          s.withdrawalAmount - s.depositAmount,
-          s.notes || '',
+          escapeField(casino?.name || 'Unknown'),
+          escapeField(cardsStr),
+          totalDeposit.toFixed(2),
+          s.withdrawalAmount.toFixed(2),
+          (s.withdrawalAmount - totalDeposit).toFixed(2),
+          sessionCashback.toFixed(2),
+          escapeField(s.notes || ''),
         ].join(',');
       });
 
@@ -97,6 +119,12 @@ export function TaxReport() {
             <span className="label">Net Result</span>
             <span className={`value ${taxCalculation.netResult >= 0 ? 'positive' : 'negative'}`}>
               {formatCurrency(taxCalculation.netResult)}
+            </span>
+          </div>
+          <div>
+            <span className="label">Net + Cashback</span>
+            <span className={`value ${(taxCalculation.netResult + taxCalculation.estimatedCashback) >= 0 ? 'positive' : 'negative'}`}>
+              {formatCurrency(taxCalculation.netResult + taxCalculation.estimatedCashback)}
             </span>
           </div>
         </div>

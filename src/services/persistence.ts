@@ -1,8 +1,8 @@
-import type { AppData, Casino, Session } from '../models/types';
+import type { AppData, Casino, CreditCard, Session } from '../models/types';
 
 const STORAGE_KEY = 'sc-tracker-data';
 const API_BASE = '/api';
-const CURRENT_SCHEMA_VERSION = 5;
+const CURRENT_SCHEMA_VERSION = 6;
 
 const STAKE_US_PRESETS = [20, 50, 100, 200, 300, 500, 1000, 2000];
 
@@ -11,14 +11,31 @@ const STAKE_US_ID = '00000000-0000-0000-0000-000000000001';
 const CROWN_COIN_ID = '00000000-0000-0000-0000-000000000002';
 const MCLUCK_ID = '00000000-0000-0000-0000-000000000003';
 
+// Fixed IDs for default credit cards
+export const WELLS_FARGO_ACTIVE_CASH_ID = '00000000-0000-0000-0000-000000000101';
+export const CRYPTO_COM_JADE_ID = '00000000-0000-0000-0000-000000000102';
+
+const DEFAULT_CREDIT_CARDS: CreditCard[] = [
+  { id: WELLS_FARGO_ACTIVE_CASH_ID, name: 'Wells Fargo Active Cash', cashbackPercentage: 2, isActive: true },
+  { id: CRYPTO_COM_JADE_ID, name: 'Crypto.com Jade', cashbackPercentage: 4.5, isActive: true },
+];
+
 const DEFAULT_CASINOS: Casino[] = [
   { id: STAKE_US_ID, name: 'Stake.us', isActive: true, depositPresets: STAKE_US_PRESETS },
   { id: CROWN_COIN_ID, name: 'CrownCoinCasino', isActive: true, depositPresets: [] },
   { id: MCLUCK_ID, name: 'McLuck', isActive: true, depositPresets: [] },
 ];
 
+// Raw seed data (without cardDeposits, will be added in getDefaultAppData)
+interface RawSeedSession {
+  date: string;
+  casinoID: string;
+  depositAmount: number;
+  withdrawalAmount: number;
+}
+
 // Seed sessions from purchase history (COMPLETED only, grouped by day)
-const STAKE_US_SEED_SESSIONS: Omit<Session, 'id'>[] = [
+const STAKE_US_SEED_SESSIONS: RawSeedSession[] = [
   { date: '2025-12-29T12:00:00.000Z', casinoID: STAKE_US_ID, depositAmount: 9000, withdrawalAmount: 0 },
   { date: '2025-12-24T12:00:00.000Z', casinoID: STAKE_US_ID, depositAmount: 9000, withdrawalAmount: 0 },
   { date: '2025-12-23T12:00:00.000Z', casinoID: STAKE_US_ID, depositAmount: 8000, withdrawalAmount: 0 },
@@ -38,14 +55,14 @@ const STAKE_US_SEED_SESSIONS: Omit<Session, 'id'>[] = [
 ];
 
 // CrownCoinCasino sessions
-const CROWN_COIN_SEED_SESSIONS: Omit<Session, 'id'>[] = [
+const CROWN_COIN_SEED_SESSIONS: RawSeedSession[] = [
   { date: '2025-12-19T12:00:00.000Z', casinoID: CROWN_COIN_ID, depositAmount: 1000, withdrawalAmount: 897 },
   { date: '2025-12-18T12:00:00.000Z', casinoID: CROWN_COIN_ID, depositAmount: 1000, withdrawalAmount: 0 },
   { date: '2025-12-17T12:00:00.000Z', casinoID: CROWN_COIN_ID, depositAmount: 1000, withdrawalAmount: 2600 },
 ];
 
 // McLuck sessions (7 × $299.99 on 12/16, 4 × $299.99 on 12/15)
-const MCLUCK_SEED_SESSIONS: Omit<Session, 'id'>[] = [
+const MCLUCK_SEED_SESSIONS: RawSeedSession[] = [
   { date: '2025-12-16T12:00:00.000Z', casinoID: MCLUCK_ID, depositAmount: 2099.93, withdrawalAmount: 0 },
   { date: '2025-12-15T12:00:00.000Z', casinoID: MCLUCK_ID, depositAmount: 1199.96, withdrawalAmount: 0 },
 ];
@@ -53,16 +70,17 @@ const MCLUCK_SEED_SESSIONS: Omit<Session, 'id'>[] = [
 const SEED_SESSIONS = [...STAKE_US_SEED_SESSIONS, ...CROWN_COIN_SEED_SESSIONS, ...MCLUCK_SEED_SESSIONS];
 
 function getDefaultAppData(): AppData {
-  // Generate IDs for seed sessions
+  // Generate IDs for seed sessions with cardDeposits
   const sessions: Session[] = SEED_SESSIONS.map((s, i) => ({
     ...s,
     id: `seed-session-${String(i + 1).padStart(4, '0')}`,
+    cardDeposits: [{ creditCardID: WELLS_FARGO_ACTIVE_CASH_ID, amount: s.depositAmount }],
   }));
 
   return {
     sessions,
     casinos: DEFAULT_CASINOS,
-    creditCards: [],
+    creditCards: [...DEFAULT_CREDIT_CARDS],
     schemaVersion: CURRENT_SCHEMA_VERSION,
   };
 }
@@ -91,11 +109,12 @@ function migrate(data: AppData): AppData {
       }
 
       // Add seed sessions with the correct casino ID
+      // Note: cardDeposits will be added by v5→v6 migration
       migrated.sessions = SEED_SESSIONS.map((s, i) => ({
         ...s,
         id: `seed-session-${String(i + 1).padStart(4, '0')}`,
         casinoID: stakeUs!.id,
-      }));
+      })) as Session[];
     }
   }
 
@@ -115,13 +134,14 @@ function migrate(data: AppData): AppData {
         .map(s => s.date.split('T')[0])
     );
 
+    // Note: cardDeposits will be added by v5→v6 migration
     const newSessions = CROWN_COIN_SEED_SESSIONS
       .filter(s => !existingDates.has(s.date.split('T')[0]))
       .map((s, i) => ({
         ...s,
         id: `crowncoin-session-${String(i + 1).padStart(4, '0')}`,
         casinoID: crownCoin!.id,
-      }));
+      })) as Session[];
 
     migrated.sessions = [...migrated.sessions, ...newSessions];
   }
@@ -142,15 +162,48 @@ function migrate(data: AppData): AppData {
         .map(s => s.date.split('T')[0])
     );
 
+    // Note: cardDeposits will be added by v5→v6 migration
     const newMcLuckSessions = MCLUCK_SEED_SESSIONS
       .filter(s => !existingDates.has(s.date.split('T')[0]))
       .map((s, i) => ({
         ...s,
         id: `mcluck-session-${String(i + 1).padStart(4, '0')}`,
         casinoID: mcluck!.id,
-      }));
+      })) as Session[];
 
     migrated.sessions = [...migrated.sessions, ...newMcLuckSessions];
+  }
+
+  // v5 -> v6: Add multi-card deposit support
+  if (migrated.schemaVersion < 6) {
+    // Step 1: Ensure default credit cards exist
+    for (const defaultCard of DEFAULT_CREDIT_CARDS) {
+      const existing = migrated.creditCards.find(c =>
+        c.name === defaultCard.name || c.id === defaultCard.id
+      );
+      if (!existing) {
+        migrated.creditCards.push({ ...defaultCard });
+      }
+    }
+
+    // Step 2: Migrate sessions to use cardDeposits array
+    migrated.sessions = migrated.sessions.map(session => {
+      // Skip if already migrated (has cardDeposits array)
+      if (Array.isArray((session as any).cardDeposits) && (session as any).cardDeposits.length > 0) {
+        return session;
+      }
+
+      const depositAmount = session.depositAmount || 0;
+
+      // Determine card ID: use existing creditCardID, or default to Wells Fargo
+      const cardID = (session as any).creditCardID || WELLS_FARGO_ACTIVE_CASH_ID;
+
+      return {
+        ...session,
+        cardDeposits: depositAmount > 0 ? [{ creditCardID: cardID, amount: depositAmount }] : [],
+        depositAmount: depositAmount,  // Keep for backward compat
+      };
+    });
   }
 
   migrated.schemaVersion = CURRENT_SCHEMA_VERSION;

@@ -5,98 +5,218 @@
       "casinoID": "bc3915e7-2efb-43f5-adc6-52e5133e7c03",
       "depositAmount": 9000,
       "withdrawalAmount": 8891,
-      "id": "seed-session-0001"
+      "id": "seed-session-0001",
+      "cardDeposits": [
+        {
+          "creditCardID": "00000000-0000-0000-0000-000000000101",
+          "amount": 7000
+        },
+        {
+          "creditCardID": "00000000-0000-0000-0000-000000000102",
+          "amount": 2000
+        }
+      ]
     },
     {
       "date": "2025-12-24T12:00:00.000Z",
       "casinoID": "bc3915e7-2efb-43f5-adc6-52e5133e7c03",
       "depositAmount": 9000,
       "withdrawalAmount": 8996.27,
-      "id": "seed-session-0002"
+      "id": "seed-session-0002",
+      "cardDeposits": [
+        {
+          "creditCardID": "00000000-0000-0000-0000-000000000101",
+          "amount": 7000
+        },
+        {
+          "creditCardID": "00000000-0000-0000-0000-000000000102",
+          "amount": 2000
+        }
+      ]
     },
     {
       "date": "2025-12-23T12:00:00.000Z",
       "casinoID": "bc3915e7-2efb-43f5-adc6-52e5133e7c03",
       "depositAmount": 8000,
       "withdrawalAmount": 7941.45,
-      "id": "seed-session-0003"
+      "id": "seed-session-0003",
+      "cardDeposits": [
+        {
+          "creditCardID": "00000000-0000-0000-0000-000000000101",
+          "amount": 6000
+        },
+        {
+          "creditCardID": "00000000-0000-0000-0000-000000000102",
+          "amount": 2000
+        }
+      ]
     },
     {
       "date": "2025-12-22T12:00:00.000Z",
       "casinoID": "bc3915e7-2efb-43f5-adc6-52e5133e7c03",
       "depositAmount": 8000,
       "withdrawalAmount": 7835.86,
-      "id": "seed-session-0004"
+      "id": "seed-session-0004",
+      "cardDeposits": [
+        {
+          "creditCardID": "00000000-0000-0000-0000-000000000101",
+          "amount": 6000
+        },
+        {
+          "creditCardID": "00000000-0000-0000-0000-000000000102",
+          "amount": 2000
+        }
+      ]
     },
     {
       "date": "2025-12-19T12:00:00.000Z",
       "casinoID": "bc3915e7-2efb-43f5-adc6-52e5133e7c03",
       "depositAmount": 8000,
       "withdrawalAmount": 8011,
-      "id": "seed-session-0005"
+      "id": "seed-session-0005",
+      "cardDeposits": [
+        {
+          "creditCardID": "00000000-0000-0000-0000-000000000101",
+          "amount": 6000
+        },
+        {
+          "creditCardID": "00000000-0000-0000-0000-000000000102",
+          "amount": 2000
+        }
+      ]
     },
     {
       "date": "2025-12-18T12:00:00.000Z",
       "casinoID": "bc3915e7-2efb-43f5-adc6-52e5133e7c03",
       "depositAmount": 8000,
       "withdrawalAmount": 7743.37,
-      "id": "seed-session-0006"
+      "id": "seed-session-0006",
+      "cardDeposits": [
+        {
+          "creditCardID": "00000000-0000-0000-0000-000000000101",
+          "amount": 8000
+        }
+      ]
     },
     {
       "date": "2025-12-17T12:00:00.000Z",
       "casinoID": "bc3915e7-2efb-43f5-adc6-52e5133e7c03",
       "depositAmount": 8000,
       "withdrawalAmount": 7934,
-      "id": "seed-session-0007"
+      "id": "seed-session-0007",
+      "cardDeposits": [
+        {
+          "creditCardID": "00000000-0000-0000-0000-000000000101",
+          "amount": 8000
+        }
+      ]
     },
     {
       "date": "2025-12-16T12:00:00.000Z",
       "casinoID": "bc3915e7-2efb-43f5-adc6-52e5133e7c03",
       "depositAmount": 5000,
       "withdrawalAmount": 5000,
-      "id": "seed-session-0008"
+      "id": "seed-session-0008",
+      "cardDeposits": [
+        {
+          "creditCardID": "00000000-0000-0000-0000-000000000101",
+          "amount": 4000
+        },
+        {
+          "creditCardID": "00000000-0000-0000-0000-000000000102",
+          "amount": 1000
+        }
+      ]
     },
     {
       "date": "2025-12-15T12:00:00.000Z",
       "casinoID": "bc3915e7-2efb-43f5-adc6-52e5133e7c03",
       "depositAmount": 5000,
       "withdrawalAmount": 10000,
-      "id": "seed-session-0009"
+      "id": "seed-session-0009",
+      "cardDeposits": [
+        {
+          "creditCardID": "00000000-0000-0000-0000-000000000101",
+          "amount": 3000
+        },
+        {
+          "creditCardID": "00000000-0000-0000-0000-000000000102",
+          "amount": 2000
+        }
+      ]
     },
     {
       "date": "2025-12-12T12:00:00.000Z",
       "casinoID": "bc3915e7-2efb-43f5-adc6-52e5133e7c03",
       "depositAmount": 5000,
       "withdrawalAmount": 4830,
-      "id": "seed-session-0010"
+      "id": "seed-session-0010",
+      "cardDeposits": [
+        {
+          "creditCardID": "00000000-0000-0000-0000-000000000101",
+          "amount": 4000
+        },
+        {
+          "creditCardID": "00000000-0000-0000-0000-000000000102",
+          "amount": 1000
+        }
+      ]
     },
     {
       "date": "2025-12-11T12:00:00.000Z",
       "casinoID": "bc3915e7-2efb-43f5-adc6-52e5133e7c03",
       "depositAmount": 5000,
       "withdrawalAmount": 4846,
-      "id": "seed-session-0011"
+      "id": "seed-session-0011",
+      "cardDeposits": [
+        {
+          "creditCardID": "00000000-0000-0000-0000-000000000101",
+          "amount": 5000
+        }
+      ]
     },
     {
       "date": "2025-12-10T12:00:00.000Z",
       "casinoID": "bc3915e7-2efb-43f5-adc6-52e5133e7c03",
       "depositAmount": 5000,
       "withdrawalAmount": 4909.89,
-      "id": "seed-session-0012"
+      "id": "seed-session-0012",
+      "cardDeposits": [
+        {
+          "creditCardID": "00000000-0000-0000-0000-000000000101",
+          "amount": 5000
+        }
+      ]
     },
     {
       "date": "2025-12-09T12:00:00.000Z",
       "casinoID": "bc3915e7-2efb-43f5-adc6-52e5133e7c03",
       "depositAmount": 2000,
       "withdrawalAmount": 2024,
-      "id": "seed-session-0013"
+      "id": "seed-session-0013",
+      "cardDeposits": [
+        {
+          "creditCardID": "00000000-0000-0000-0000-000000000101",
+          "amount": 1000
+        },
+        {
+          "creditCardID": "00000000-0000-0000-0000-000000000102",
+          "amount": 1000
+        }
+      ]
     },
     {
       "date": "2025-12-08T12:00:00.000Z",
       "casinoID": "bc3915e7-2efb-43f5-adc6-52e5133e7c03",
       "depositAmount": 2000,
       "withdrawalAmount": 1894,
-      "id": "seed-session-0014"
+      "id": "seed-session-0014",
+      "cardDeposits": [
+        {
+          "creditCardID": "00000000-0000-0000-0000-000000000102",
+          "amount": 2000
+        }
+      ]
     },
     {
       "id": "6a9209da-e630-4a65-a6fe-8295fab99c3e",
@@ -104,42 +224,90 @@
       "casinoID": "bc3915e7-2efb-43f5-adc6-52e5133e7c03",
       "depositAmount": 4000,
       "withdrawalAmount": 3901.57,
-      "notes": "Combined 2 sessions (12/5/2025 - 12/6/2025)"
+      "notes": "Combined 2 sessions (12/5/2025 - 12/6/2025)",
+      "cardDeposits": [
+        {
+          "creditCardID": "00000000-0000-0000-0000-000000000102",
+          "amount": 4000
+        }
+      ]
     },
     {
       "date": "2025-12-16T12:00:00.000Z",
       "casinoID": "003df684-2196-4881-af5b-154a3e15d131",
       "depositAmount": 2099.93,
       "withdrawalAmount": 2180,
-      "id": "mcluck-session-0001"
+      "id": "mcluck-session-0001",
+      "cardDeposits": [
+        {
+          "creditCardID": "00000000-0000-0000-0000-000000000101",
+          "amount": 2099.93
+        }
+      ]
     },
     {
       "date": "2025-12-15T12:00:00.000Z",
       "casinoID": "003df684-2196-4881-af5b-154a3e15d131",
       "depositAmount": 1199.96,
       "withdrawalAmount": 1040,
-      "id": "mcluck-session-0002"
+      "id": "mcluck-session-0002",
+      "cardDeposits": [
+        {
+          "creditCardID": "00000000-0000-0000-0000-000000000101",
+          "amount": 1199.96
+        }
+      ]
     },
     {
       "date": "2025-12-30T12:00:00.000Z",
       "casinoID": "bc3915e7-2efb-43f5-adc6-52e5133e7c03",
       "depositAmount": 9000,
       "withdrawalAmount": 8516,
-      "id": "00e84263-3f4f-47f4-8e70-95df6d0e12ed"
+      "id": "00e84263-3f4f-47f4-8e70-95df6d0e12ed",
+      "cardDeposits": [
+        {
+          "creditCardID": "00000000-0000-0000-0000-000000000101",
+          "amount": 7000
+        },
+        {
+          "creditCardID": "00000000-0000-0000-0000-000000000102",
+          "amount": 2000
+        }
+      ]
     },
     {
       "date": "2025-12-31T12:00:00.000Z",
       "casinoID": "bc3915e7-2efb-43f5-adc6-52e5133e7c03",
       "depositAmount": 6000,
       "withdrawalAmount": 5843,
-      "id": "01738cbc-6bc0-4355-8785-0db65e16a717"
+      "id": "01738cbc-6bc0-4355-8785-0db65e16a717",
+      "cardDeposits": [
+        {
+          "creditCardID": "00000000-0000-0000-0000-000000000101",
+          "amount": 4000
+        },
+        {
+          "creditCardID": "00000000-0000-0000-0000-000000000102",
+          "amount": 2000
+        }
+      ]
     },
     {
       "date": "2026-01-05T12:00:00.000Z",
       "casinoID": "bc3915e7-2efb-43f5-adc6-52e5133e7c03",
       "depositAmount": 9000,
       "withdrawalAmount": 8950.96,
-      "id": "4c0d7d0f-6b69-493f-9ad2-a37a9bfc05be"
+      "id": "4c0d7d0f-6b69-493f-9ad2-a37a9bfc05be",
+      "cardDeposits": [
+        {
+          "creditCardID": "00000000-0000-0000-0000-000000000101",
+          "amount": 7000
+        },
+        {
+          "creditCardID": "00000000-0000-0000-0000-000000000102",
+          "amount": 2000
+        }
+      ]
     }
   ],
   "casinos": [
@@ -171,6 +339,19 @@
       "depositPresets": []
     }
   ],
-  "creditCards": [],
-  "schemaVersion": 5
+  "creditCards": [
+    {
+      "id": "00000000-0000-0000-0000-000000000101",
+      "name": "Wells Fargo Active Cash",
+      "cashbackPercentage": 2,
+      "isActive": true
+    },
+    {
+      "id": "00000000-0000-0000-0000-000000000102",
+      "name": "Crypto.com Jade",
+      "cashbackPercentage": 4.5,
+      "isActive": true
+    }
+  ],
+  "schemaVersion": 6
 }

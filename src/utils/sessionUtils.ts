@@ -1,17 +1,26 @@
 import type { Session } from '../models/types';
 
+// Get total deposit amount from cardDeposits array (with fallback for legacy data)
+export function getTotalDeposit(session: Session): number {
+  if (session.cardDeposits && Array.isArray(session.cardDeposits) && session.cardDeposits.length > 0) {
+    return session.cardDeposits.reduce((sum, cd) => sum + cd.amount, 0);
+  }
+  // Fallback to depositAmount for legacy/unmigrated data
+  return session.depositAmount || 0;
+}
+
 // A session is pending if it has a deposit but no withdrawal yet
 export function isPending(session: Session): boolean {
-  return session.depositAmount > 0 && session.withdrawalAmount === 0;
+  return getTotalDeposit(session) > 0 && session.withdrawalAmount === 0;
 }
 
 // A session is complete if it has a withdrawal amount (even if 0 deposit)
 export function isComplete(session: Session): boolean {
-  return session.withdrawalAmount > 0 || (session.depositAmount === 0 && session.withdrawalAmount === 0);
+  return session.withdrawalAmount > 0 || (getTotalDeposit(session) === 0 && session.withdrawalAmount === 0);
 }
 
 export function getNetResult(session: Session): number {
-  return session.withdrawalAmount - session.depositAmount;
+  return session.withdrawalAmount - getTotalDeposit(session);
 }
 
 export function isWin(session: Session): boolean {
@@ -27,10 +36,11 @@ export function isLoss(session: Session): boolean {
 }
 
 export function getRtpPercentage(session: Session): number | null {
-  if (session.depositAmount <= 0) return null;
+  const totalDeposit = getTotalDeposit(session);
+  if (totalDeposit <= 0) return null;
   // Don't show RTP for pending sessions
   if (isPending(session)) return null;
-  return (session.withdrawalAmount / session.depositAmount) * 100;
+  return (session.withdrawalAmount / totalDeposit) * 100;
 }
 
 export function getTaxYear(session: Session): number {
@@ -62,5 +72,11 @@ export function filterByCasino(sessions: Session[], casinoID: string): Session[]
 }
 
 export function filterByCreditCard(sessions: Session[], creditCardID: string): Session[] {
-  return sessions.filter(s => s.creditCardID === creditCardID);
+  return sessions.filter(s => {
+    // New multi-card format
+    if (s.cardDeposits && Array.isArray(s.cardDeposits)) {
+      return s.cardDeposits.some(cd => cd.creditCardID === creditCardID);
+    }
+    return false;
+  });
 }

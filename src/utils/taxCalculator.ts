@@ -1,5 +1,5 @@
 import type { Session, CreditCard, TaxCalculation, FilingStatus, ItemizationAnalysis } from '../models/types';
-import { filterByYear, isWin, isLoss, isPending, getWinAmount, getLossAmount } from './sessionUtils';
+import { filterByYear, isWin, isLoss, isPending, getWinAmount, getLossAmount, getTotalDeposit } from './sessionUtils';
 
 const INDIANA_TAX_RATE = 0.0323;
 const OBBBA_START_YEAR = 2026;
@@ -14,7 +14,7 @@ export function calculateTax(
   const completedSessions = yearSessions.filter(s => !isPending(s));
 
   // Basic totals (from completed sessions only)
-  const totalDeposits = completedSessions.reduce((sum, s) => sum + s.depositAmount, 0);
+  const totalDeposits = completedSessions.reduce((sum, s) => sum + getTotalDeposit(s), 0);
   const totalWithdrawals = completedSessions.reduce((sum, s) => sum + s.withdrawalAmount, 0);
   const netResult = totalWithdrawals - totalDeposits;
 
@@ -36,7 +36,7 @@ export function calculateTax(
   // Session counts (completed only)
   const winningSessions = completedSessions.filter(isWin).length;
   const losingSessions = completedSessions.filter(isLoss).length;
-  const breakEvenSessions = completedSessions.filter(s => s.withdrawalAmount === s.depositAmount).length;
+  const breakEvenSessions = completedSessions.filter(s => s.withdrawalAmount === getTotalDeposit(s)).length;
 
   return {
     year,
@@ -77,10 +77,25 @@ export function calculateFederalDeductibleLosses(
 
 export function calculateCashback(sessions: Session[], creditCards: CreditCard[]): number {
   return sessions.reduce((total, session) => {
-    if (!session.creditCardID) return total;
-    const card = creditCards.find(c => c.id === session.creditCardID);
+    // New multi-card format
+    if (session.cardDeposits && Array.isArray(session.cardDeposits)) {
+      return total + session.cardDeposits.reduce((cardTotal, deposit) => {
+        const card = creditCards.find(c => c.id === deposit.creditCardID);
+        if (!card) return cardTotal;
+        return cardTotal + deposit.amount * (card.cashbackPercentage / 100);
+      }, 0);
+    }
+    return total;
+  }, 0);
+}
+
+// Calculate cashback for a single session
+export function calculateSessionCashback(session: Session, creditCards: CreditCard[]): number {
+  if (!session.cardDeposits || !Array.isArray(session.cardDeposits)) return 0;
+  return session.cardDeposits.reduce((total, deposit) => {
+    const card = creditCards.find(c => c.id === deposit.creditCardID);
     if (!card) return total;
-    return total + session.depositAmount * (card.cashbackPercentage / 100);
+    return total + deposit.amount * (card.cashbackPercentage / 100);
   }, 0);
 }
 
