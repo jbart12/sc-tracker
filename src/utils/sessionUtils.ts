@@ -80,3 +80,27 @@ export function filterByCreditCard(sessions: Session[], creditCardID: string): S
     return false;
   });
 }
+
+// Get start and end of the current week (Sunday to Saturday)
+export function getCurrentWeekRange(): { start: Date; end: Date } {
+  const now = new Date();
+  const dayOfWeek = now.getDay(); // 0 = Sunday
+
+  const start = new Date(now);
+  start.setDate(now.getDate() - dayOfWeek);
+  start.setHours(0, 0, 0, 0);
+
+  const end = new Date(start);
+  end.setDate(start.getDate() + 6);
+  end.setHours(23, 59, 59, 999);
+
+  return { start, end };
+}
+
+export function filterByCurrentWeek(sessions: Session[]): Session[] {
+  const { start, end } = getCurrentWeekRange();
+  return sessions.filter(s => {
+    const sessionDate = new Date(s.date);
+    return sessionDate >= start && sessionDate <= end;
+  });
+}

@@ -3,6 +3,7 @@
 export interface CardDeposit {
   creditCardID: string;
   amount: number;
+  cashbackOverride?: number; // Optional override for calculated cashback
 }
 
 export interface Session {
@@ -91,6 +92,8 @@ export interface CasinoStats {
   totalDeposits: number;
   totalWithdrawals: number;
   netResult: number;
+  cashback: number;
+  totalProfit: number;
   rtpPercentage: number | null;
 }
 

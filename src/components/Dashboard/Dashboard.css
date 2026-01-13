@@ -60,6 +60,21 @@
   color: var(--color-danger);
 }
 
+.stat-card-large {
+  grid-column: span 2;
+  background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
+  border: 2px solid var(--color-primary);
+}
+
+.stat-card-large .stat-title {
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.stat-card-large .stat-value {
+  font-size: 2.5rem;
+}
+
 .tax-preview {
   background: var(--bg-secondary);
   border-radius: 12px;
@@ -167,8 +182,14 @@
   color: var(--text-primary);
 }
 
+.casino-cashback {
+  width: 90px;
+  text-align: right;
+  color: var(--color-success);
+}
+
 .casino-result {
-  width: 100px;
+  width: 90px;
   text-align: right;
   font-weight: 500;
 }
@@ -181,8 +202,97 @@
   color: var(--color-danger);
 }
 
+.casino-profit {
+  width: 100px;
+  text-align: right;
+  font-weight: 600;
+}
+
+.casino-profit.positive {
+  color: var(--color-success);
+}
+
+.casino-profit.negative {
+  color: var(--color-danger);
+}
+
 .casino-rtp {
   width: 60px;
   text-align: right;
   color: var(--text-secondary);
+}
+
+/* Weekly Stats Section */
+.weekly-stats {
+  background: var(--bg-secondary);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 24px;
+}
+
+.weekly-stats h3 {
+  margin: 0 0 16px 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.week-range {
+  font-size: 0.875rem;
+  font-weight: 400;
+  color: var(--text-secondary);
+}
+
+.weekly-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+.weekly-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.weekly-stat.highlight {
+  background: var(--bg-tertiary);
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid var(--color-primary);
+}
+
+.weekly-label {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.weekly-value {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.weekly-value.positive {
+  color: var(--color-success);
+}
+
+.weekly-value.negative {
+  color: var(--color-danger);
+}
+
+.no-sessions {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  margin: 0;
+}
+
+@media (max-width: 768px) {
+  .weekly-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }

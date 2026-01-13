@@ -1,10 +1,23 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
-import { calculateTax, calculateRTP, calculateCashback } from '../../utils/taxCalculator';
-import { filterByYear, filterByCasino, isPending, getTotalDeposit } from '../../utils/sessionUtils';
+import { calculateTax, calculateRTP, calculateCashback, calculateSessionCashback } from '../../utils/taxCalculator';
+import { filterByYear, filterByCasino, filterByCurrentWeek, getCurrentWeekRange, isPending, getTotalDeposit } from '../../utils/sessionUtils';
 import { formatCurrency, formatPercent } from '../../utils/formatters';
 import type { YTDStats, CasinoStats } from '../../models/types';
 import './Dashboard.css';
+
+interface WeeklyStats {
+  sessionCount: number;
+  totalDeposits: number;
+  totalWithdrawals: number;
+  totalBet: number; // 3x deposits
+  netResult: number;
+  netWithCashback: number;
+  totalCashback: number;
+  rtpPercentage: number | null;
+  weekStart: Date;
+  weekEnd: Date;
+}
 
 export function Dashboard() {
   const { data, yearsWithSessions, isLoading } = useApp();
@@ -52,6 +65,33 @@ export function Dashboard() {
     };
   }, [data.sessions, data.creditCards, selectedYear]);
 
+  const weeklyStats = useMemo((): WeeklyStats => {
+    const { start, end } = getCurrentWeekRange();
+    const weekSessions = filterByCurrentWeek(data.sessions);
+    const completedSessions = weekSessions.filter(s => !isPending(s));
+
+    // Only use completed sessions for all stats
+    const totalDeposits = completedSessions.reduce((sum, s) => sum + getTotalDeposit(s), 0);
+    const totalWithdrawals = completedSessions.reduce((sum, s) => sum + s.withdrawalAmount, 0);
+    const netResult = totalWithdrawals - totalDeposits;
+    const totalCashback = calculateCashback(completedSessions, data.creditCards);
+    const netWithCashback = netResult + totalCashback;
+    const totalBet = totalDeposits * 3; // 3x playthrough assumption
+
+    return {
+      sessionCount: completedSessions.length,
+      totalDeposits,
+      totalWithdrawals,
+      totalBet,
+      netResult,
+      netWithCashback,
+      totalCashback,
+      rtpPercentage: calculateRTP(totalDeposits, totalWithdrawals),
+      weekStart: start,
+      weekEnd: end,
+    };
+  }, [data.sessions, data.creditCards]);
+
   const taxCalculation = useMemo(
     () => calculateTax(data.sessions, data.creditCards, selectedYear),
     [data.sessions, data.creditCards, selectedYear]
@@ -70,19 +110,26 @@ export function Dashboard() {
         const completedSessions = casinoSessions.filter(s => !isPending(s));
         const completedDeposits = completedSessions.reduce((sum, s) => sum + getTotalDeposit(s), 0);
         const totalWithdrawals = completedSessions.reduce((sum, s) => sum + s.withdrawalAmount, 0);
+        const netResult = totalWithdrawals - completedDeposits;
+
+        // Calculate cashback for this casino's sessions
+        const cashback = casinoSessions.reduce((sum, s) => sum + calculateSessionCashback(s, data.creditCards), 0);
+        const totalProfit = netResult + cashback;
 
         return {
           casino,
           sessionCount: casinoSessions.length,
           totalDeposits,
           totalWithdrawals,
-          netResult: totalWithdrawals - completedDeposits,
+          netResult,
+          cashback,
+          totalProfit,
           rtpPercentage: calculateRTP(completedDeposits, totalWithdrawals),
         };
       })
       .filter((s): s is CasinoStats => s !== null)
-      .sort((a, b) => b.sessionCount - a.sessionCount);
-  }, [data.sessions, data.casinos, selectedYear]);
+      .sort((a, b) => b.totalProfit - a.totalProfit);
+  }, [data.sessions, data.casinos, data.creditCards, selectedYear]);
 
   if (isLoading) {
     return <div className="dashboard"><p>Loading...</p></div>;
@@ -104,6 +151,12 @@ export function Dashboard() {
       </div>
 
       <div className="stat-cards">
+        <StatCard
+          title="Total Profit"
+          value={formatCurrency(ytdStats.netWithCashback)}
+          valueClass={ytdStats.netWithCashback > 0 ? 'positive' : ytdStats.netWithCashback < 0 ? 'negative' : ''}
+          large
+        />
         <StatCard title="Sessions" value={String(ytdStats.sessionCount)} />
         <StatCard title="Total Deposited" value={formatCurrency(ytdStats.totalDeposits)} />
         <StatCard title="Total Withdrawn" value={formatCurrency(ytdStats.totalWithdrawals)} />
@@ -112,16 +165,64 @@ export function Dashboard() {
           value={formatCurrency(ytdStats.netResult)}
           valueClass={ytdStats.isProfit ? 'positive' : ytdStats.isLoss ? 'negative' : ''}
         />
-        <StatCard
-          title="Net + Cashback"
-          value={formatCurrency(ytdStats.netWithCashback)}
-          valueClass={ytdStats.netWithCashback > 0 ? 'positive' : ytdStats.netWithCashback < 0 ? 'negative' : ''}
-        />
+        <StatCard title="Cashback Earned" value={formatCurrency(ytdStats.totalCashback)} />
         <StatCard
           title="RTP"
           value={ytdStats.rtpPercentage ? formatPercent(ytdStats.rtpPercentage) : 'N/A'}
         />
-        <StatCard title="Cashback Earned" value={formatCurrency(ytdStats.totalCashback)} />
+      </div>
+
+      <div className="weekly-stats">
+        <h3>
+          This Week
+          <span className="week-range">
+            {weeklyStats.weekStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - {weeklyStats.weekEnd.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+          </span>
+        </h3>
+        {weeklyStats.sessionCount > 0 ? (
+          <div className="weekly-grid">
+            <div className="weekly-stat">
+              <span className="weekly-label">Sessions</span>
+              <span className="weekly-value">{weeklyStats.sessionCount}</span>
+            </div>
+            <div className="weekly-stat">
+              <span className="weekly-label">Deposited</span>
+              <span className="weekly-value">{formatCurrency(weeklyStats.totalDeposits)}</span>
+            </div>
+            <div className="weekly-stat">
+              <span className="weekly-label">Total Bet</span>
+              <span className="weekly-value">{formatCurrency(weeklyStats.totalBet)}</span>
+            </div>
+            <div className="weekly-stat">
+              <span className="weekly-label">Withdrawn</span>
+              <span className="weekly-value">{formatCurrency(weeklyStats.totalWithdrawals)}</span>
+            </div>
+            <div className="weekly-stat">
+              <span className="weekly-label">Net Result</span>
+              <span className={`weekly-value ${weeklyStats.netResult > 0 ? 'positive' : weeklyStats.netResult < 0 ? 'negative' : ''}`}>
+                {formatCurrency(weeklyStats.netResult)}
+              </span>
+            </div>
+            <div className="weekly-stat">
+              <span className="weekly-label">Cashback</span>
+              <span className="weekly-value positive">{formatCurrency(weeklyStats.totalCashback)}</span>
+            </div>
+            <div className="weekly-stat highlight">
+              <span className="weekly-label">Profit</span>
+              <span className={`weekly-value ${weeklyStats.netWithCashback > 0 ? 'positive' : weeklyStats.netWithCashback < 0 ? 'negative' : ''}`}>
+                {formatCurrency(weeklyStats.netWithCashback)}
+              </span>
+            </div>
+            <div className="weekly-stat">
+              <span className="weekly-label">RTP</span>
+              <span className="weekly-value">
+                {weeklyStats.rtpPercentage ? formatPercent(weeklyStats.rtpPercentage) : 'N/A'}
+              </span>
+            </div>
+          </div>
+        ) : (
+          <p className="no-sessions">No sessions this week</p>
+        )}
       </div>
 
       <div className="tax-preview">
@@ -164,7 +265,9 @@ export function Dashboard() {
             <span className="casino-sessions">Sessions</span>
             <span className="casino-deposits">Deposits</span>
             <span className="casino-withdrawals">Withdrawals</span>
+            <span className="casino-cashback">Cashback</span>
             <span className="casino-result">Net</span>
+            <span className="casino-profit">Profit</span>
             <span className="casino-rtp">RTP</span>
           </div>
           {casinoStats.map(stat => (
@@ -173,8 +276,12 @@ export function Dashboard() {
               <span className="casino-sessions">{stat.sessionCount}</span>
               <span className="casino-deposits">{formatCurrency(stat.totalDeposits)}</span>
               <span className="casino-withdrawals">{formatCurrency(stat.totalWithdrawals)}</span>
+              <span className="casino-cashback">{formatCurrency(stat.cashback)}</span>
               <span className={`casino-result ${stat.netResult >= 0 ? 'positive' : 'negative'}`}>
                 {formatCurrency(stat.netResult)}
+              </span>
+              <span className={`casino-profit ${stat.totalProfit >= 0 ? 'positive' : 'negative'}`}>
+                {formatCurrency(stat.totalProfit)}
               </span>
               <span className="casino-rtp">
                 {stat.rtpPercentage ? formatPercent(stat.rtpPercentage) : '-'}
@@ -187,9 +294,9 @@ export function Dashboard() {
   );
 }
 
-function StatCard({ title, value, valueClass = '' }: { title: string; value: string; valueClass?: string }) {
+function StatCard({ title, value, valueClass = '', large = false }: { title: string; value: string; valueClass?: string; large?: boolean }) {
   return (
-    <div className="stat-card">
+    <div className={`stat-card ${large ? 'stat-card-large' : ''}`}>
       <div className="stat-title">{title}</div>
       <div className={`stat-value ${valueClass}`}>{value}</div>
     </div>

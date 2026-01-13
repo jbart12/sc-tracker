@@ -14,6 +14,7 @@ interface CardDepositFormState {
   id: string;
   creditCardID: string;
   amount: string;
+  cashbackOverride: string; // Empty string means use calculated default
 }
 
 export function SessionForm({ session, onClose }: SessionFormProps) {
@@ -32,12 +33,13 @@ export function SessionForm({ session, onClose }: SessionFormProps) {
         id: `deposit-${i}`,
         creditCardID: cd.creditCardID,
         amount: cd.amount.toString(),
+        cashbackOverride: cd.cashbackOverride !== undefined ? cd.cashbackOverride.toString() : '',
       }));
     }
     // Default: Two sections for Wells Fargo and Crypto.com
     return [
-      { id: 'deposit-0', creditCardID: WELLS_FARGO_ACTIVE_CASH_ID, amount: '' },
-      { id: 'deposit-1', creditCardID: CRYPTO_COM_JADE_ID, amount: '' },
+      { id: 'deposit-0', creditCardID: WELLS_FARGO_ACTIVE_CASH_ID, amount: '', cashbackOverride: '' },
+      { id: 'deposit-1', creditCardID: CRYPTO_COM_JADE_ID, amount: '', cashbackOverride: '' },
     ];
   });
 
@@ -63,6 +65,10 @@ export function SessionForm({ session, onClose }: SessionFormProps) {
     }, 0);
 
     const totalCashback = cardDeposits.reduce((sum, cd) => {
+      // Use override if provided, otherwise calculate from card percentage
+      if (cd.cashbackOverride !== '') {
+        return sum + (parseFloat(cd.cashbackOverride) || 0);
+      }
       const amount = parseFloat(cd.amount) || 0;
       const card = data.creditCards.find(c => c.id === cd.creditCardID);
       if (!card) return sum;
@@ -90,7 +96,7 @@ export function SessionForm({ session, onClose }: SessionFormProps) {
   const isValid = casinoID && hasValidDeposit;
 
   // Update a card deposit field
-  const updateCardDeposit = (id: string, field: 'creditCardID' | 'amount', value: string) => {
+  const updateCardDeposit = (id: string, field: 'creditCardID' | 'amount' | 'cashbackOverride', value: string) => {
     setCardDeposits(prev => prev.map(cd =>
       cd.id === id ? { ...cd, [field]: value } : cd
     ));
@@ -116,7 +122,8 @@ export function SessionForm({ session, onClose }: SessionFormProps) {
       {
         id: `deposit-${Date.now()}`,
         creditCardID: availableCard?.id || activeCreditCards[0]?.id || '',
-        amount: ''
+        amount: '',
+        cashbackOverride: '',
       }
     ]);
   };
@@ -141,10 +148,17 @@ export function SessionForm({ session, onClose }: SessionFormProps) {
     // Filter out empty deposits and convert to proper format
     const validDeposits: CardDeposit[] = cardDeposits
       .filter(cd => (parseFloat(cd.amount) || 0) > 0)
-      .map(cd => ({
-        creditCardID: cd.creditCardID,
-        amount: parseFloat(cd.amount) || 0,
-      }));
+      .map(cd => {
+        const deposit: CardDeposit = {
+          creditCardID: cd.creditCardID,
+          amount: parseFloat(cd.amount) || 0,
+        };
+        // Only include override if user explicitly set one
+        if (cd.cashbackOverride !== '') {
+          deposit.cashbackOverride = parseFloat(cd.cashbackOverride) || 0;
+        }
+        return deposit;
+      });
 
     const sessionData = {
       date: `${date}T12:00:00.000Z`,
@@ -282,11 +296,36 @@ export function SessionForm({ session, onClose }: SessionFormProps) {
                   </div>
                 )}
 
-                {cashback > 0 && (
-                  <div className="card-cashback">
-                    Cashback: {formatCurrency(cashback)}
+                <div className="card-cashback-group">
+                  <label>Cashback</label>
+                  <div className="cashback-input-wrapper">
+                    <span className="cashback-dollar">$</span>
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      className="cashback-input"
+                      value={cd.cashbackOverride !== '' ? cd.cashbackOverride : (cashback > 0 ? cashback.toFixed(2) : '')}
+                      onChange={(e) => updateCardDeposit(cd.id, 'cashbackOverride', e.target.value)}
+                      placeholder={cashback > 0 ? cashback.toFixed(2) : '0.00'}
+                    />
+                    {cd.cashbackOverride !== '' && (
+                      <button
+                        type="button"
+                        className="cashback-reset-btn"
+                        onClick={() => updateCardDeposit(cd.id, 'cashbackOverride', '')}
+                        title="Reset to calculated value"
+                      >
+                        Reset
+                      </button>
+                    )}
                   </div>
-                )}
+                  {cd.cashbackOverride !== '' && cashback > 0 && (
+                    <div className="cashback-calc-hint">
+                      Calculated: {formatCurrency(cashback)}
+                    </div>
+                  )}
+                </div>
               </div>
             );
           })}

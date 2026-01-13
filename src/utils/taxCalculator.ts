@@ -110,28 +110,30 @@ export function calculateFederalDeductibleLosses(
   }
 }
 
-export function calculateCashback(sessions: Session[], creditCards: CreditCard[]): number {
-  return sessions.reduce((total, session) => {
-    // New multi-card format
-    if (session.cardDeposits && Array.isArray(session.cardDeposits)) {
-      return total + session.cardDeposits.reduce((cardTotal, deposit) => {
-        const card = creditCards.find(c => c.id === deposit.creditCardID);
-        if (!card) return cardTotal;
-        return cardTotal + deposit.amount * (card.cashbackPercentage / 100);
-      }, 0);
-    }
-    return total;
-  }, 0);
-}
-
 // Calculate cashback for a single session
 export function calculateSessionCashback(session: Session, creditCards: CreditCard[]): number {
   if (!session.cardDeposits || !Array.isArray(session.cardDeposits)) return 0;
   return session.cardDeposits.reduce((total, deposit) => {
+    // Use override if provided, otherwise calculate from card percentage
+    if (deposit.cashbackOverride !== undefined) {
+      return total + deposit.cashbackOverride;
+    }
     const card = creditCards.find(c => c.id === deposit.creditCardID);
     if (!card) return total;
     return total + deposit.amount * (card.cashbackPercentage / 100);
   }, 0);
+}
+
+export function calculateCashback(sessions: Session[], creditCards: CreditCard[]): number {
+  return sessions.reduce((total, session) => {
+    return total + calculateSessionCashback(session, creditCards);
+  }, 0);
+}
+
+// Calculate default cashback for a deposit (without override)
+export function calculateDepositCashback(amount: number, card: CreditCard | undefined): number {
+  if (!card || amount <= 0) return 0;
+  return amount * (card.cashbackPercentage / 100);
 }
 
 export function calculateRTP(totalDeposits: number, totalWithdrawals: number): number | null {
