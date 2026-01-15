@@ -1,10 +1,13 @@
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
+const { execSync } = require('child_process');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 const DATA_FILE = process.env.DATA_FILE || '/data/sc-tracker-data.json';
+const PROJECT_ROOT = process.env.PROJECT_ROOT || path.resolve(__dirname, '..');
+const AUTO_COMMIT = process.env.AUTO_COMMIT !== 'false'; // Enable by default
 
 app.use(express.json({ limit: '10mb' }));
 
@@ -30,12 +33,42 @@ app.get('/api/data', (req, res) => {
   }
 });
 
+// Auto-commit and push data file changes
+function autoCommitAndPush() {
+  if (!AUTO_COMMIT) return;
+
+  try {
+    // Check if file has changes
+    const status = execSync('git status --porcelain data/sc-tracker-data.json', {
+      cwd: PROJECT_ROOT,
+      encoding: 'utf8'
+    }).trim();
+
+    if (!status) {
+      return; // No changes to commit
+    }
+
+    // Stage, commit, and push
+    execSync('git add data/sc-tracker-data.json', { cwd: PROJECT_ROOT });
+    execSync('git commit -m "Auto-save data"', { cwd: PROJECT_ROOT });
+    execSync('git push', { cwd: PROJECT_ROOT });
+
+    console.log('Auto-committed and pushed data changes');
+  } catch (error) {
+    // Don't fail the request if git operations fail
+    console.error('Auto-commit failed:', error.message);
+  }
+}
+
 // POST /api/data - Write data file
 app.post('/api/data', (req, res) => {
   try {
     const data = req.body;
     fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2));
     res.json({ success: true });
+
+    // Auto-commit in background (don't block response)
+    setImmediate(autoCommitAndPush);
   } catch (error) {
     console.error('Error writing data file:', error);
     res.status(500).json({ error: 'Failed to write data' });
