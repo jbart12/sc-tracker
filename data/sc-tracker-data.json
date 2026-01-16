@@ -503,6 +503,12 @@
       "name": "McLuck",
       "isActive": true,
       "depositPresets": []
+    },
+    {
+      "name": "Pulsz",
+      "isActive": true,
+      "depositPresets": [],
+      "id": "6af32f62-375d-40f5-a3fe-46eccfb10144"
     }
   ],
   "creditCards": [
