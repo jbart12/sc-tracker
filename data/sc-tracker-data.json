@@ -522,6 +522,12 @@
       "isActive": true,
       "depositPresets": [],
       "id": "6af32f62-375d-40f5-a3fe-46eccfb10144"
+    },
+    {
+      "name": "Sidepot",
+      "isActive": true,
+      "depositPresets": [],
+      "id": "607379e3-32c2-49e6-9ff2-f47cb5e46374"
     }
   ],
   "creditCards": [
