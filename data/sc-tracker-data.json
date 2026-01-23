@@ -610,6 +610,12 @@
       "isActive": true,
       "depositPresets": [],
       "id": "607379e3-32c2-49e6-9ff2-f47cb5e46374"
+    },
+    {
+      "name": "Modo.us",
+      "isActive": true,
+      "depositPresets": [],
+      "id": "86100bf1-c5df-497c-9b1b-3a42c206e5be"
     }
   ],
   "creditCards": [
