@@ -1,35 +1,62 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
 import { calculateTax, calculateRTP, calculateCashback, calculateSessionCashback } from '../../utils/taxCalculator';
-import { filterByYear, filterByCasino, filterByCurrentWeek, getCurrentWeekRange, isPending, getTotalDeposit } from '../../utils/sessionUtils';
+import { filterByYear, filterByCasino, filterByCurrentWeek, getCurrentWeekRange, filterByMonth, getMonthRange, isPending, getTotalDeposit } from '../../utils/sessionUtils';
 import { formatCurrency, formatPercent } from '../../utils/formatters';
-import type { YTDStats, CasinoStats } from '../../models/types';
+import type { CasinoStats } from '../../models/types';
 import './Dashboard.css';
 
-interface WeeklyStats {
+interface PeriodStats {
   sessionCount: number;
   totalDeposits: number;
   totalWithdrawals: number;
-  totalBet: number; // 3x deposits
+  totalBet: number;
   netResult: number;
   netWithCashback: number;
   totalCashback: number;
   rtpPercentage: number | null;
+}
+
+interface WeeklyStats extends PeriodStats {
   weekStart: Date;
   weekEnd: Date;
 }
 
+interface MonthlyStats extends PeriodStats {
+  monthStart: Date;
+  monthEnd: Date;
+}
+
+interface YearlyStats extends PeriodStats {
+  year: number;
+}
+
+const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+const MONTH_NAMES_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
 export function Dashboard() {
   const { data, yearsWithSessions, isLoading } = useApp();
   const currentYear = new Date().getFullYear();
+  const currentMonth = new Date().getMonth();
+
+  // Monthly selector state
+  const [selectedMonthYear, setSelectedMonthYear] = useState(currentYear);
+  const [selectedMonth, setSelectedMonth] = useState(currentMonth);
+
+  // Yearly selector state
   const [selectedYear, setSelectedYear] = useState(currentYear);
 
-  // Update selected year when data loads
+  // Update selected years when data loads
   useEffect(() => {
-    if (yearsWithSessions.length > 0 && !yearsWithSessions.includes(selectedYear)) {
-      setSelectedYear(yearsWithSessions[0]);
+    if (yearsWithSessions.length > 0) {
+      if (!yearsWithSessions.includes(selectedYear)) {
+        setSelectedYear(yearsWithSessions[0]);
+      }
+      if (!yearsWithSessions.includes(selectedMonthYear)) {
+        setSelectedMonthYear(yearsWithSessions[0]);
+      }
     }
-  }, [yearsWithSessions, selectedYear]);
+  }, [yearsWithSessions, selectedYear, selectedMonthYear]);
 
   const availableYears = useMemo(() => {
     const years = new Set(yearsWithSessions);
@@ -37,46 +64,37 @@ export function Dashboard() {
     return [...years].sort((a, b) => b - a);
   }, [yearsWithSessions, currentYear]);
 
-  const ytdStats = useMemo((): YTDStats => {
-    const yearSessions = filterByYear(data.sessions, selectedYear);
-    const completedSessions = yearSessions.filter(s => !isPending(s));
-    const pendingCount = yearSessions.filter(isPending).length;
+  // Available months for selected year (only months that have sessions, plus current month if current year)
+  const availableMonths = useMemo(() => {
+    const yearSessions = filterByYear(data.sessions, selectedMonthYear);
+    const monthsWithSessions = new Set(yearSessions.map(s => new Date(s.date).getMonth()));
 
-    // Total deposits includes all sessions
-    const totalDeposits = yearSessions.reduce((sum, s) => sum + getTotalDeposit(s), 0);
-    // Only count withdrawals and calculate net from completed sessions
-    const totalWithdrawals = completedSessions.reduce((sum, s) => sum + s.withdrawalAmount, 0);
-    const completedDeposits = completedSessions.reduce((sum, s) => sum + getTotalDeposit(s), 0);
-    const netResult = totalWithdrawals - completedDeposits;
-    const totalCashback = calculateCashback(yearSessions, data.creditCards);
-    const netWithCashback = netResult + totalCashback;
+    // If it's the current year, include the current month
+    if (selectedMonthYear === currentYear) {
+      monthsWithSessions.add(currentMonth);
+    }
 
-    return {
-      sessionCount: yearSessions.length,
-      totalDeposits,
-      totalWithdrawals,
-      netResult,
-      netWithCashback,
-      rtpPercentage: calculateRTP(completedDeposits, totalWithdrawals),
-      totalCashback,
-      isProfit: netResult > 0,
-      isLoss: netResult < 0,
-      pendingCount,
-    };
-  }, [data.sessions, data.creditCards, selectedYear]);
+    return [...monthsWithSessions].sort((a, b) => b - a);
+  }, [data.sessions, selectedMonthYear, currentYear, currentMonth]);
+
+  // When year changes for monthly selector, adjust month if needed
+  useEffect(() => {
+    if (availableMonths.length > 0 && !availableMonths.includes(selectedMonth)) {
+      setSelectedMonth(availableMonths[0]);
+    }
+  }, [availableMonths, selectedMonth]);
 
   const weeklyStats = useMemo((): WeeklyStats => {
     const { start, end } = getCurrentWeekRange();
     const weekSessions = filterByCurrentWeek(data.sessions);
     const completedSessions = weekSessions.filter(s => !isPending(s));
 
-    // Only use completed sessions for all stats
     const totalDeposits = completedSessions.reduce((sum, s) => sum + getTotalDeposit(s), 0);
     const totalWithdrawals = completedSessions.reduce((sum, s) => sum + s.withdrawalAmount, 0);
     const netResult = totalWithdrawals - totalDeposits;
     const totalCashback = calculateCashback(completedSessions, data.creditCards);
     const netWithCashback = netResult + totalCashback;
-    const totalBet = totalDeposits * 3; // 3x playthrough assumption
+    const totalBet = totalDeposits * 3;
 
     return {
       sessionCount: completedSessions.length,
@@ -89,6 +107,78 @@ export function Dashboard() {
       rtpPercentage: calculateRTP(totalDeposits, totalWithdrawals),
       weekStart: start,
       weekEnd: end,
+    };
+  }, [data.sessions, data.creditCards]);
+
+  const monthlyStats = useMemo((): MonthlyStats => {
+    const { start, end } = getMonthRange(selectedMonthYear, selectedMonth);
+    const monthSessions = filterByMonth(data.sessions, selectedMonthYear, selectedMonth);
+    const completedSessions = monthSessions.filter(s => !isPending(s));
+
+    const totalDeposits = completedSessions.reduce((sum, s) => sum + getTotalDeposit(s), 0);
+    const totalWithdrawals = completedSessions.reduce((sum, s) => sum + s.withdrawalAmount, 0);
+    const netResult = totalWithdrawals - totalDeposits;
+    const totalCashback = calculateCashback(completedSessions, data.creditCards);
+    const netWithCashback = netResult + totalCashback;
+    const totalBet = totalDeposits * 3;
+
+    return {
+      sessionCount: completedSessions.length,
+      totalDeposits,
+      totalWithdrawals,
+      totalBet,
+      netResult,
+      netWithCashback,
+      totalCashback,
+      rtpPercentage: calculateRTP(totalDeposits, totalWithdrawals),
+      monthStart: start,
+      monthEnd: end,
+    };
+  }, [data.sessions, data.creditCards, selectedMonthYear, selectedMonth]);
+
+  const yearlyStats = useMemo((): YearlyStats => {
+    const yearSessions = filterByYear(data.sessions, selectedYear);
+    const completedSessions = yearSessions.filter(s => !isPending(s));
+
+    const totalDeposits = completedSessions.reduce((sum, s) => sum + getTotalDeposit(s), 0);
+    const totalWithdrawals = completedSessions.reduce((sum, s) => sum + s.withdrawalAmount, 0);
+    const netResult = totalWithdrawals - totalDeposits;
+    const totalCashback = calculateCashback(completedSessions, data.creditCards);
+    const netWithCashback = netResult + totalCashback;
+    const totalBet = totalDeposits * 3;
+
+    return {
+      sessionCount: completedSessions.length,
+      totalDeposits,
+      totalWithdrawals,
+      totalBet,
+      netResult,
+      netWithCashback,
+      totalCashback,
+      rtpPercentage: calculateRTP(totalDeposits, totalWithdrawals),
+      year: selectedYear,
+    };
+  }, [data.sessions, data.creditCards, selectedYear]);
+
+  const allTimeStats = useMemo((): PeriodStats => {
+    const completedSessions = data.sessions.filter(s => !isPending(s));
+
+    const totalDeposits = completedSessions.reduce((sum, s) => sum + getTotalDeposit(s), 0);
+    const totalWithdrawals = completedSessions.reduce((sum, s) => sum + s.withdrawalAmount, 0);
+    const netResult = totalWithdrawals - totalDeposits;
+    const totalCashback = calculateCashback(completedSessions, data.creditCards);
+    const netWithCashback = netResult + totalCashback;
+    const totalBet = totalDeposits * 3;
+
+    return {
+      sessionCount: completedSessions.length,
+      totalDeposits,
+      totalWithdrawals,
+      totalBet,
+      netResult,
+      netWithCashback,
+      totalCashback,
+      rtpPercentage: calculateRTP(totalDeposits, totalWithdrawals),
     };
   }, [data.sessions, data.creditCards]);
 
@@ -137,91 +227,83 @@ export function Dashboard() {
 
   return (
     <div className="dashboard">
-      <div className="dashboard-header">
-        <h2>Year-to-Date Summary</h2>
-        <select
-          value={selectedYear}
-          onChange={(e) => setSelectedYear(Number(e.target.value))}
-          className="year-picker"
-        >
-          {availableYears.map(year => (
-            <option key={year} value={year}>{year}</option>
-          ))}
-        </select>
-      </div>
-
-      <div className="stat-cards">
-        <StatCard
-          title="Total Profit"
-          value={formatCurrency(ytdStats.netWithCashback)}
-          valueClass={ytdStats.netWithCashback > 0 ? 'positive' : ytdStats.netWithCashback < 0 ? 'negative' : ''}
-          large
-        />
-        <StatCard title="Sessions" value={String(ytdStats.sessionCount)} />
-        <StatCard title="Total Deposited" value={formatCurrency(ytdStats.totalDeposits)} />
-        <StatCard title="Total Withdrawn" value={formatCurrency(ytdStats.totalWithdrawals)} />
-        <StatCard
-          title="Net Result"
-          value={formatCurrency(ytdStats.netResult)}
-          valueClass={ytdStats.isProfit ? 'positive' : ytdStats.isLoss ? 'negative' : ''}
-        />
-        <StatCard title="Cashback Earned" value={formatCurrency(ytdStats.totalCashback)} />
-        <StatCard
-          title="RTP"
-          value={ytdStats.rtpPercentage ? formatPercent(ytdStats.rtpPercentage) : 'N/A'}
-        />
-      </div>
-
-      <div className="weekly-stats">
-        <h3>
-          This Week
-          <span className="week-range">
+      {/* Weekly Stats */}
+      <div className="period-stats">
+        <div className="period-header">
+          <h3>This Week</h3>
+          <span className="period-range">
             {weeklyStats.weekStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - {weeklyStats.weekEnd.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
           </span>
-        </h3>
+        </div>
         {weeklyStats.sessionCount > 0 ? (
-          <div className="weekly-grid">
-            <div className="weekly-stat">
-              <span className="weekly-label">Sessions</span>
-              <span className="weekly-value">{weeklyStats.sessionCount}</span>
-            </div>
-            <div className="weekly-stat">
-              <span className="weekly-label">Deposited</span>
-              <span className="weekly-value">{formatCurrency(weeklyStats.totalDeposits)}</span>
-            </div>
-            <div className="weekly-stat">
-              <span className="weekly-label">Total Bet</span>
-              <span className="weekly-value">{formatCurrency(weeklyStats.totalBet)}</span>
-            </div>
-            <div className="weekly-stat">
-              <span className="weekly-label">Withdrawn</span>
-              <span className="weekly-value">{formatCurrency(weeklyStats.totalWithdrawals)}</span>
-            </div>
-            <div className="weekly-stat">
-              <span className="weekly-label">Net Result</span>
-              <span className={`weekly-value ${weeklyStats.netResult > 0 ? 'positive' : weeklyStats.netResult < 0 ? 'negative' : ''}`}>
-                {formatCurrency(weeklyStats.netResult)}
-              </span>
-            </div>
-            <div className="weekly-stat">
-              <span className="weekly-label">Cashback</span>
-              <span className="weekly-value positive">{formatCurrency(weeklyStats.totalCashback)}</span>
-            </div>
-            <div className="weekly-stat highlight">
-              <span className="weekly-label">Profit</span>
-              <span className={`weekly-value ${weeklyStats.netWithCashback > 0 ? 'positive' : weeklyStats.netWithCashback < 0 ? 'negative' : ''}`}>
-                {formatCurrency(weeklyStats.netWithCashback)}
-              </span>
-            </div>
-            <div className="weekly-stat">
-              <span className="weekly-label">RTP</span>
-              <span className="weekly-value">
-                {weeklyStats.rtpPercentage ? formatPercent(weeklyStats.rtpPercentage) : 'N/A'}
-              </span>
-            </div>
-          </div>
+          <StatsGrid stats={weeklyStats} />
         ) : (
           <p className="no-sessions">No sessions this week</p>
+        )}
+      </div>
+
+      {/* Monthly Stats */}
+      <div className="period-stats">
+        <div className="period-header">
+          <h3>Monthly</h3>
+          <div className="period-selectors">
+            <select
+              value={selectedMonth}
+              onChange={(e) => setSelectedMonth(Number(e.target.value))}
+              className="period-picker"
+            >
+              {availableMonths.map(month => (
+                <option key={month} value={month}>{MONTH_NAMES_SHORT[month]}</option>
+              ))}
+            </select>
+            <select
+              value={selectedMonthYear}
+              onChange={(e) => setSelectedMonthYear(Number(e.target.value))}
+              className="period-picker"
+            >
+              {availableYears.map(year => (
+                <option key={year} value={year}>{year}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+        {monthlyStats.sessionCount > 0 ? (
+          <StatsGrid stats={monthlyStats} />
+        ) : (
+          <p className="no-sessions">No sessions in {MONTH_NAMES[selectedMonth]} {selectedMonthYear}</p>
+        )}
+      </div>
+
+      {/* Yearly Stats */}
+      <div className="period-stats">
+        <div className="period-header">
+          <h3>Yearly</h3>
+          <select
+            value={selectedYear}
+            onChange={(e) => setSelectedYear(Number(e.target.value))}
+            className="period-picker"
+          >
+            {availableYears.map(year => (
+              <option key={year} value={year}>{year}</option>
+            ))}
+          </select>
+        </div>
+        {yearlyStats.sessionCount > 0 ? (
+          <StatsGrid stats={yearlyStats} />
+        ) : (
+          <p className="no-sessions">No sessions in {selectedYear}</p>
+        )}
+      </div>
+
+      {/* All-Time Stats */}
+      <div className="period-stats">
+        <div className="period-header">
+          <h3>All Time</h3>
+        </div>
+        {allTimeStats.sessionCount > 0 ? (
+          <StatsGrid stats={allTimeStats} />
+        ) : (
+          <p className="no-sessions">No sessions recorded</p>
         )}
       </div>
 
@@ -294,11 +376,47 @@ export function Dashboard() {
   );
 }
 
-function StatCard({ title, value, valueClass = '', large = false }: { title: string; value: string; valueClass?: string; large?: boolean }) {
+function StatsGrid({ stats }: { stats: PeriodStats }) {
   return (
-    <div className={`stat-card ${large ? 'stat-card-large' : ''}`}>
-      <div className="stat-title">{title}</div>
-      <div className={`stat-value ${valueClass}`}>{value}</div>
+    <div className="stats-grid">
+      <div className="stats-item">
+        <span className="stats-label">Sessions</span>
+        <span className="stats-value">{stats.sessionCount}</span>
+      </div>
+      <div className="stats-item">
+        <span className="stats-label">Deposited</span>
+        <span className="stats-value">{formatCurrency(stats.totalDeposits)}</span>
+      </div>
+      <div className="stats-item">
+        <span className="stats-label">Total Bet</span>
+        <span className="stats-value">{formatCurrency(stats.totalBet)}</span>
+      </div>
+      <div className="stats-item">
+        <span className="stats-label">Withdrawn</span>
+        <span className="stats-value">{formatCurrency(stats.totalWithdrawals)}</span>
+      </div>
+      <div className="stats-item">
+        <span className="stats-label">Net Result</span>
+        <span className={`stats-value ${stats.netResult > 0 ? 'positive' : stats.netResult < 0 ? 'negative' : ''}`}>
+          {formatCurrency(stats.netResult)}
+        </span>
+      </div>
+      <div className="stats-item">
+        <span className="stats-label">Cashback</span>
+        <span className="stats-value positive">{formatCurrency(stats.totalCashback)}</span>
+      </div>
+      <div className="stats-item highlight">
+        <span className="stats-label">Profit</span>
+        <span className={`stats-value ${stats.netWithCashback > 0 ? 'positive' : stats.netWithCashback < 0 ? 'negative' : ''}`}>
+          {formatCurrency(stats.netWithCashback)}
+        </span>
+      </div>
+      <div className="stats-item">
+        <span className="stats-label">RTP</span>
+        <span className="stats-value">
+          {stats.rtpPercentage ? formatPercent(stats.rtpPercentage) : 'N/A'}
+        </span>
+      </div>
     </div>
   );
 }

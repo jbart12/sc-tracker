@@ -104,3 +104,33 @@ export function filterByCurrentWeek(sessions: Session[]): Session[] {
     return sessionDate >= start && sessionDate <= end;
   });
 }
+
+// Get start and end of a specific month
+export function getMonthRange(year: number, month: number): { start: Date; end: Date } {
+  const start = new Date(year, month, 1);
+  start.setHours(0, 0, 0, 0);
+
+  const end = new Date(year, month + 1, 0); // Last day of month
+  end.setHours(23, 59, 59, 999);
+
+  return { start, end };
+}
+
+// Get start and end of the current month
+export function getCurrentMonthRange(): { start: Date; end: Date } {
+  const now = new Date();
+  return getMonthRange(now.getFullYear(), now.getMonth());
+}
+
+export function filterByMonth(sessions: Session[], year: number, month: number): Session[] {
+  const { start, end } = getMonthRange(year, month);
+  return sessions.filter(s => {
+    const sessionDate = new Date(s.date);
+    return sessionDate >= start && sessionDate <= end;
+  });
+}
+
+export function filterByCurrentMonth(sessions: Session[]): Session[] {
+  const now = new Date();
+  return filterByMonth(sessions, now.getFullYear(), now.getMonth());
+}
