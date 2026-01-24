@@ -494,14 +494,14 @@
       "cardDeposits": [
         {
           "creditCardID": "00000000-0000-0000-0000-000000000101",
-          "amount": 19.96
+          "amount": 89
         },
         {
           "creditCardID": "00000000-0000-0000-0000-000000000102",
           "amount": 37
         }
       ],
-      "depositAmount": 56.96,
+      "depositAmount": 126,
       "withdrawalAmount": 0,
       "id": "787fe792-0149-428b-ab98-4a1c55b6329f"
     },
