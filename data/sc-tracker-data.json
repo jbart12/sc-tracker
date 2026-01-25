@@ -642,6 +642,12 @@
       "isActive": true,
       "depositPresets": [],
       "id": "86100bf1-c5df-497c-9b1b-3a42c206e5be"
+    },
+    {
+      "name": "High 5",
+      "isActive": true,
+      "depositPresets": [],
+      "id": "a29f8523-4dfa-453e-98e6-6ce67a5e59ba"
     }
   ],
   "creditCards": [
