@@ -608,6 +608,357 @@
       "depositAmount": 900,
       "withdrawalAmount": 0,
       "id": "9e387785-5f35-4695-9a06-c5f4b405941c"
+    },
+    {
+      "id": "import-2023-cc8df47c",
+      "date": "2023-12-31T12:00:00.000Z",
+      "casinoID": "c1b5f650-fc19-477f-bb38-931c896fb356",
+      "depositAmount": 286,
+      "withdrawalAmount": 463,
+      "cardDeposits": [
+        {
+          "creditCardID": "00000000-0000-0000-0000-000000000001",
+          "amount": 286
+        }
+      ]
+    },
+    {
+      "id": "import-2023-badcaa38",
+      "date": "2023-12-31T12:00:00.000Z",
+      "casinoID": "1842fe89-96d7-4bc6-90ac-9f282b908872",
+      "depositAmount": 386,
+      "withdrawalAmount": 793,
+      "cardDeposits": [
+        {
+          "creditCardID": "00000000-0000-0000-0000-000000000001",
+          "amount": 386
+        }
+      ]
+    },
+    {
+      "id": "import-2023-bb334ef4",
+      "date": "2023-12-31T12:00:00.000Z",
+      "casinoID": "c7305059-a43d-4fff-a4d4-d820c1cbdbe5",
+      "depositAmount": 1630,
+      "withdrawalAmount": 2091,
+      "cardDeposits": [
+        {
+          "creditCardID": "00000000-0000-0000-0000-000000000001",
+          "amount": 1630
+        }
+      ]
+    },
+    {
+      "id": "import-2023-910c721d",
+      "date": "2023-12-31T12:00:00.000Z",
+      "casinoID": "d834b324-4e1e-4ba5-905b-d8cbbcec65ea",
+      "depositAmount": 252,
+      "withdrawalAmount": 1010,
+      "cardDeposits": [
+        {
+          "creditCardID": "00000000-0000-0000-0000-000000000001",
+          "amount": 252
+        }
+      ]
+    },
+    {
+      "id": "import-2023-edd92347",
+      "date": "2023-12-31T12:00:00.000Z",
+      "casinoID": "6af32f62-375d-40f5-a3fe-46eccfb10144",
+      "depositAmount": 1079,
+      "withdrawalAmount": 1281,
+      "cardDeposits": [
+        {
+          "creditCardID": "00000000-0000-0000-0000-000000000001",
+          "amount": 1079
+        }
+      ]
+    },
+    {
+      "id": "import-2023-69cbe942",
+      "date": "2023-12-31T12:00:00.000Z",
+      "casinoID": "7cf7c238-a9e4-46f0-a5bd-694ad0808652",
+      "depositAmount": 360,
+      "withdrawalAmount": 305,
+      "cardDeposits": [
+        {
+          "creditCardID": "00000000-0000-0000-0000-000000000001",
+          "amount": 360
+        }
+      ]
+    },
+    {
+      "id": "import-2023-c1c42117",
+      "date": "2023-12-31T12:00:00.000Z",
+      "casinoID": "003df684-2196-4881-af5b-154a3e15d131",
+      "depositAmount": 12777,
+      "withdrawalAmount": 16532,
+      "cardDeposits": [
+        {
+          "creditCardID": "00000000-0000-0000-0000-000000000001",
+          "amount": 12777
+        }
+      ]
+    },
+    {
+      "id": "import-2023-90ba0570",
+      "date": "2023-12-31T12:00:00.000Z",
+      "casinoID": "a29f8523-4dfa-453e-98e6-6ce67a5e59ba",
+      "depositAmount": 1432,
+      "withdrawalAmount": 1974,
+      "cardDeposits": [
+        {
+          "creditCardID": "00000000-0000-0000-0000-000000000001",
+          "amount": 1432
+        }
+      ]
+    },
+    {
+      "id": "import-2023-c7d7766e",
+      "date": "2023-12-31T12:00:00.000Z",
+      "casinoID": "d2894d1e-ee6b-467e-9de1-da26ac022508",
+      "depositAmount": 638,
+      "withdrawalAmount": 961,
+      "cardDeposits": [
+        {
+          "creditCardID": "00000000-0000-0000-0000-000000000001",
+          "amount": 638
+        }
+      ]
+    },
+    {
+      "id": "import-2023-b28f337a",
+      "date": "2023-12-31T12:00:00.000Z",
+      "casinoID": "40d5089f-2aa9-41bb-b36e-03168c741186",
+      "depositAmount": 2113,
+      "withdrawalAmount": 2516,
+      "cardDeposits": [
+        {
+          "creditCardID": "00000000-0000-0000-0000-000000000001",
+          "amount": 2113
+        }
+      ]
+    },
+    {
+      "id": "import-2023-72f76c97",
+      "date": "2023-12-31T12:00:00.000Z",
+      "casinoID": "9481a82d-785d-410c-8e94-f0e87eea6856",
+      "depositAmount": 656,
+      "withdrawalAmount": 725,
+      "cardDeposits": [
+        {
+          "creditCardID": "00000000-0000-0000-0000-000000000001",
+          "amount": 656
+        }
+      ]
+    },
+    {
+      "id": "import-2023-78d0f0e5",
+      "date": "2023-12-31T12:00:00.000Z",
+      "casinoID": "0d358819-cf81-48da-825e-55d91787ec25",
+      "depositAmount": 226,
+      "withdrawalAmount": 508,
+      "cardDeposits": [
+        {
+          "creditCardID": "00000000-0000-0000-0000-000000000001",
+          "amount": 226
+        }
+      ]
+    },
+    {
+      "id": "import-2023-1ab84fde",
+      "date": "2023-12-31T12:00:00.000Z",
+      "casinoID": "86100bf1-c5df-497c-9b1b-3a42c206e5be",
+      "depositAmount": 301,
+      "withdrawalAmount": 420,
+      "cardDeposits": [
+        {
+          "creditCardID": "00000000-0000-0000-0000-000000000001",
+          "amount": 301
+        }
+      ]
+    },
+    {
+      "id": "import-2023-cee37a21",
+      "date": "2023-12-31T12:00:00.000Z",
+      "casinoID": "788a70f4-44a2-49c7-907e-3316b7d4d885",
+      "depositAmount": 145,
+      "withdrawalAmount": 198,
+      "cardDeposits": [
+        {
+          "creditCardID": "00000000-0000-0000-0000-000000000001",
+          "amount": 145
+        }
+      ]
+    },
+    {
+      "id": "import-2023-3512eb9f",
+      "date": "2023-12-31T12:00:00.000Z",
+      "casinoID": "f3c2bd39-4666-47d5-bad3-f055fe0d15fa",
+      "depositAmount": 20,
+      "withdrawalAmount": 27,
+      "cardDeposits": [
+        {
+          "creditCardID": "00000000-0000-0000-0000-000000000001",
+          "amount": 20
+        }
+      ]
+    },
+    {
+      "id": "import-2024-b5f3bfdf",
+      "date": "2024-12-31T12:00:00.000Z",
+      "casinoID": "788a70f4-44a2-49c7-907e-3316b7d4d885",
+      "depositAmount": 1367,
+      "withdrawalAmount": 1338,
+      "cardDeposits": [
+        {
+          "creditCardID": "00000000-0000-0000-0000-000000000001",
+          "amount": 1367
+        }
+      ]
+    },
+    {
+      "id": "import-2024-e2ef6cf0",
+      "date": "2024-12-31T12:00:00.000Z",
+      "casinoID": "d834b324-4e1e-4ba5-905b-d8cbbcec65ea",
+      "depositAmount": 3,
+      "withdrawalAmount": 52,
+      "cardDeposits": [
+        {
+          "creditCardID": "00000000-0000-0000-0000-000000000001",
+          "amount": 3
+        }
+      ]
+    },
+    {
+      "id": "import-2024-ba865c9d",
+      "date": "2024-12-31T12:00:00.000Z",
+      "casinoID": "003df684-2196-4881-af5b-154a3e15d131",
+      "depositAmount": 44794,
+      "withdrawalAmount": 49322,
+      "cardDeposits": [
+        {
+          "creditCardID": "00000000-0000-0000-0000-000000000001",
+          "amount": 44794
+        }
+      ]
+    },
+    {
+      "id": "import-2024-ed0a06ef",
+      "date": "2024-12-31T12:00:00.000Z",
+      "casinoID": "a044d149-d141-4ec5-8636-ca0a39a16db1",
+      "depositAmount": 10624,
+      "withdrawalAmount": 12581,
+      "cardDeposits": [
+        {
+          "creditCardID": "00000000-0000-0000-0000-000000000001",
+          "amount": 10624
+        }
+      ]
+    },
+    {
+      "id": "import-2024-5e612850",
+      "date": "2024-12-31T12:00:00.000Z",
+      "casinoID": "c1b5f650-fc19-477f-bb38-931c896fb356",
+      "depositAmount": 824,
+      "withdrawalAmount": 1339,
+      "cardDeposits": [
+        {
+          "creditCardID": "00000000-0000-0000-0000-000000000001",
+          "amount": 824
+        }
+      ]
+    },
+    {
+      "id": "import-2024-d977e7da",
+      "date": "2024-12-31T12:00:00.000Z",
+      "casinoID": "6af32f62-375d-40f5-a3fe-46eccfb10144",
+      "depositAmount": 572.5,
+      "withdrawalAmount": 593,
+      "cardDeposits": [
+        {
+          "creditCardID": "00000000-0000-0000-0000-000000000001",
+          "amount": 572.5
+        }
+      ]
+    },
+    {
+      "id": "import-2024-2161b959",
+      "date": "2024-12-31T12:00:00.000Z",
+      "casinoID": "f3c2bd39-4666-47d5-bad3-f055fe0d15fa",
+      "depositAmount": 584,
+      "withdrawalAmount": 672,
+      "cardDeposits": [
+        {
+          "creditCardID": "00000000-0000-0000-0000-000000000001",
+          "amount": 584
+        }
+      ]
+    },
+    {
+      "id": "import-2024-48acfe78",
+      "date": "2024-12-31T12:00:00.000Z",
+      "casinoID": "ec996196-8d90-47c5-a71c-3de321a927e0",
+      "depositAmount": 128,
+      "withdrawalAmount": 350,
+      "cardDeposits": [
+        {
+          "creditCardID": "00000000-0000-0000-0000-000000000001",
+          "amount": 128
+        }
+      ]
+    },
+    {
+      "id": "import-2024-c4c1f0a2",
+      "date": "2024-12-31T12:00:00.000Z",
+      "casinoID": "a29f8523-4dfa-453e-98e6-6ce67a5e59ba",
+      "depositAmount": 2500,
+      "withdrawalAmount": 3968,
+      "cardDeposits": [
+        {
+          "creditCardID": "00000000-0000-0000-0000-000000000001",
+          "amount": 2500
+        }
+      ]
+    },
+    {
+      "id": "import-2024-ba1004fa",
+      "date": "2024-12-31T12:00:00.000Z",
+      "casinoID": "1842fe89-96d7-4bc6-90ac-9f282b908872",
+      "depositAmount": 4807,
+      "withdrawalAmount": 4933,
+      "cardDeposits": [
+        {
+          "creditCardID": "00000000-0000-0000-0000-000000000001",
+          "amount": 4807
+        }
+      ]
+    },
+    {
+      "id": "import-2024-5c231343",
+      "date": "2024-12-31T12:00:00.000Z",
+      "casinoID": "86100bf1-c5df-497c-9b1b-3a42c206e5be",
+      "depositAmount": 246,
+      "withdrawalAmount": 233,
+      "cardDeposits": [
+        {
+          "creditCardID": "00000000-0000-0000-0000-000000000001",
+          "amount": 246
+        }
+      ]
+    },
+    {
+      "id": "import-2024-04f4b38a",
+      "date": "2024-12-31T12:00:00.000Z",
+      "casinoID": "0d358819-cf81-48da-825e-55d91787ec25",
+      "depositAmount": 144.5,
+      "withdrawalAmount": 203,
+      "cardDeposits": [
+        {
+          "creditCardID": "00000000-0000-0000-0000-000000000001",
+          "amount": 144.5
+        }
+      ]
     }
   ],
   "casinos": [
@@ -661,6 +1012,58 @@
       "isActive": true,
       "depositPresets": [],
       "id": "a29f8523-4dfa-453e-98e6-6ce67a5e59ba"
+    },
+    {
+      "id": "c1b5f650-fc19-477f-bb38-931c896fb356",
+      "name": "WOW Vegas"
+    },
+    {
+      "id": "1842fe89-96d7-4bc6-90ac-9f282b908872",
+      "name": "Chumba Casino"
+    },
+    {
+      "id": "c7305059-a43d-4fff-a4d4-d820c1cbdbe5",
+      "name": "Fortune Coins"
+    },
+    {
+      "id": "d834b324-4e1e-4ba5-905b-d8cbbcec65ea",
+      "name": "Global Poker"
+    },
+    {
+      "id": "7cf7c238-a9e4-46f0-a5bd-694ad0808652",
+      "name": "Golden Hearts"
+    },
+    {
+      "id": "d2894d1e-ee6b-467e-9de1-da26ac022508",
+      "name": "Tao Fortune"
+    },
+    {
+      "id": "40d5089f-2aa9-41bb-b36e-03168c741186",
+      "name": "No Limit Coins"
+    },
+    {
+      "id": "9481a82d-785d-410c-8e94-f0e87eea6856",
+      "name": "Funrize"
+    },
+    {
+      "id": "0d358819-cf81-48da-825e-55d91787ec25",
+      "name": "Lucky Land"
+    },
+    {
+      "id": "788a70f4-44a2-49c7-907e-3316b7d4d885",
+      "name": "Scratchful"
+    },
+    {
+      "id": "f3c2bd39-4666-47d5-bad3-f055fe0d15fa",
+      "name": "Pulsz Bingo"
+    },
+    {
+      "id": "a044d149-d141-4ec5-8636-ca0a39a16db1",
+      "name": "Hello Millions"
+    },
+    {
+      "id": "ec996196-8d90-47c5-a71c-3de321a927e0",
+      "name": "DingDingDing"
     }
   ],
   "creditCards": [
@@ -675,6 +1078,11 @@
       "name": "Crypto.com Jade",
       "cashbackPercentage": 4.5,
       "isActive": true
+    },
+    {
+      "id": "00000000-0000-0000-0000-000000000001",
+      "name": "Historical (1%)",
+      "cashbackPercentage": 1
     }
   ],
   "schemaVersion": 6
