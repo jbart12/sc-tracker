@@ -1023,9 +1023,13 @@
         {
           "creditCardID": "00000000-0000-0000-0000-000000000102",
           "amount": 162
+        },
+        {
+          "creditCardID": "00000000-0000-0000-0000-000000000101",
+          "amount": 108
         }
       ],
-      "depositAmount": 162,
+      "depositAmount": 270,
       "withdrawalAmount": 0,
       "id": "20bf8e95-21b6-4917-ae3b-305a5cd731cd"
     }
