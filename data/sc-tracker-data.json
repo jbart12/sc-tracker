@@ -1109,6 +1109,12 @@
       "id": "00000000-0000-0000-0000-000000000001",
       "name": "Historical (1%)",
       "cashbackPercentage": 1
+    },
+    {
+      "name": "Emma's Capital One Venture X",
+      "cashbackPercentage": 2,
+      "isActive": true,
+      "id": "6f707610-e3cf-43a7-ad3b-7411f6442204"
     }
   ],
   "schemaVersion": 6
