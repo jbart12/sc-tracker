@@ -5,26 +5,32 @@ import { loadAppData, loadAppDataAsync, saveAppDataAsync, generateId } from '../
 export function useAppData() {
   const [data, setData] = useState<AppData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   // Load data from API (JSON file) on mount
   useEffect(() => {
     loadAppDataAsync()
       .then(apiData => {
         setData(apiData);
+        setError(null);
         setIsLoading(false);
       })
       .catch(error => {
         console.error('Failed to load data from API:', error);
+        setError('Unable to connect to server. Please make sure the API server is running.');
         setIsLoading(false);
       });
   }, []);
 
   // Save data to API (JSON file) whenever it changes
   useEffect(() => {
-    if (!isLoading && data) {
-      saveAppDataAsync(data).catch(console.error);
+    if (!isLoading && data && !error) {
+      saveAppDataAsync(data).catch(err => {
+        console.error('Failed to save:', err);
+        setError('Unable to save data. Please make sure the API server is running.');
+      });
     }
-  }, [data, isLoading]);
+  }, [data, isLoading, error]);
 
   // Sessions
   const addSession = useCallback((session: Omit<Session, 'id'>) => {
@@ -210,6 +216,7 @@ export function useAppData() {
   return {
     data: currentData,
     isLoading,
+    error,
     addSession,
     updateSession,
     deleteSession,

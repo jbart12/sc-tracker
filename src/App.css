@@ -4,6 +4,36 @@
   background: var(--bg-primary);
 }
 
+.error-banner {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: #dc2626;
+  color: white;
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  z-index: 1000;
+  font-size: 0.875rem;
+}
+
+.error-banner button {
+  background: white;
+  color: #dc2626;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.error-banner button:hover {
+  background: #fee2e2;
+}
+
 .sidebar {
   width: 220px;
   background: var(--bg-secondary);

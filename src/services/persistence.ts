@@ -232,66 +232,46 @@ function clearLocalStorage(): void {
 
 // Load data from API
 export async function loadAppDataAsync(): Promise<AppData> {
-  try {
-    const response = await fetch(`${API_BASE}/data`);
-    if (!response.ok) {
-      throw new Error('Failed to fetch data from API');
-    }
-
-    const apiData = await response.json();
-
-    if (apiData) {
-      // Data exists in file, migrate if needed
-      return migrate(apiData);
-    }
-
-    // No data in file - check localStorage for migration
-    const localData = loadFromLocalStorage();
-    if (localData) {
-      console.log('Migrating data from localStorage to file storage...');
-      const migrated = migrate(localData);
-      // Save to file and clear localStorage
-      await saveAppDataAsync(migrated);
-      clearLocalStorage();
-      console.log('Migration complete!');
-      return migrated;
-    }
-
-    // No data anywhere - return defaults
-    return getDefaultAppData();
-  } catch (error) {
-    console.error('Failed to load from API, falling back to localStorage:', error);
-    // Fallback to localStorage if API fails
-    const localData = loadFromLocalStorage();
-    if (localData) {
-      return migrate(localData);
-    }
-    return getDefaultAppData();
+  const response = await fetch(`${API_BASE}/data`);
+  if (!response.ok) {
+    throw new Error('Failed to fetch data from API - is the server running?');
   }
+
+  const apiData = await response.json();
+
+  if (apiData) {
+    // Data exists in file, migrate if needed
+    return migrate(apiData);
+  }
+
+  // No data in file - check localStorage for one-time migration
+  const localData = loadFromLocalStorage();
+  if (localData) {
+    console.log('Migrating data from localStorage to file storage...');
+    const migrated = migrate(localData);
+    // Save to file and clear localStorage
+    await saveAppDataAsync(migrated);
+    clearLocalStorage();
+    console.log('Migration complete!');
+    return migrated;
+  }
+
+  // No data anywhere - return defaults
+  return getDefaultAppData();
 }
 
 // Save data to API
 export async function saveAppDataAsync(data: AppData): Promise<void> {
-  try {
-    const response = await fetch(`${API_BASE}/data`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(data),
-    });
+  const response = await fetch(`${API_BASE}/data`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(data),
+  });
 
-    if (!response.ok) {
-      throw new Error('Failed to save data to API');
-    }
-  } catch (error) {
-    console.error('Failed to save to API, saving to localStorage as backup:', error);
-    // Fallback to localStorage if API fails
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-    } catch (localError) {
-      console.error('Failed to save to localStorage:', localError);
-    }
+  if (!response.ok) {
+    throw new Error('Failed to save data to API - is the server running?');
   }
 }
 
