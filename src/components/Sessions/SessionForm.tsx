@@ -184,10 +184,11 @@ export function SessionForm({ session, onClose }: SessionFormProps) {
   };
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal session-form-modal" onClick={(e) => e.stopPropagation()}>
+    <div className="modal-overlay">
+      <div className="modal session-form-modal">
         <div className="modal-header">
           <h2>{isEdit ? 'Edit Session' : 'Start Session'}</h2>
+          <button type="button" className="modal-close" onClick={onClose}>&times;</button>
         </div>
 
         <form onSubmit={handleSubmit}>
