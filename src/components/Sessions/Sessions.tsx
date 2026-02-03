@@ -63,19 +63,28 @@ export function Sessions() {
       });
     }
 
-    // Sort
-    switch (sortOrder) {
-      case 'dateDesc':
-        return sortByDateDescending(sessions);
-      case 'dateAsc':
-        return sortByDateAscending(sessions);
-      case 'amountDesc':
-        return sessions.sort((a, b) => getTotalDeposit(b) - getTotalDeposit(a));
-      case 'amountAsc':
-        return sessions.sort((a, b) => getTotalDeposit(a) - getTotalDeposit(b));
-      default:
-        return sessions;
-    }
+    // Separate pending and completed sessions
+    const pendingSessions = sessions.filter(s => isPending(s));
+    const completedSessions = sessions.filter(s => !isPending(s));
+
+    // Sort each group
+    const sortSessions = (list: Session[]) => {
+      switch (sortOrder) {
+        case 'dateDesc':
+          return sortByDateDescending(list);
+        case 'dateAsc':
+          return sortByDateAscending(list);
+        case 'amountDesc':
+          return [...list].sort((a, b) => getTotalDeposit(b) - getTotalDeposit(a));
+        case 'amountAsc':
+          return [...list].sort((a, b) => getTotalDeposit(a) - getTotalDeposit(b));
+        default:
+          return list;
+      }
+    };
+
+    // Pending sessions always at top, then completed sessions
+    return [...sortSessions(pendingSessions), ...sortSessions(completedSessions)];
   }, [data.sessions, casinoFilter, cardFilter, searchText, sortOrder, getCasino, getCreditCard]);
 
   const clearFilters = () => {
