@@ -1152,16 +1152,16 @@
     },
     {
       "date": "2026-02-03T12:00:00.000Z",
-      "casinoID": "bc3915e7-2efb-43f5-adc6-52e5133e7c03",
+      "casinoID": "6af32f62-375d-40f5-a3fe-46eccfb10144",
       "cardDeposits": [
         {
           "creditCardID": "00000000-0000-0000-0000-000000000101",
-          "amount": 9000
+          "amount": 30
         }
       ],
-      "depositAmount": 9000,
+      "depositAmount": 30,
       "withdrawalAmount": 0,
-      "id": "ff691915-88c1-4275-9716-a416849c63b4"
+      "id": "c9acd86c-4c22-43eb-940a-087a7a37c8cb"
     }
   ],
   "casinos": [
