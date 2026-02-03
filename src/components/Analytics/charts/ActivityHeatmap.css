@@ -1,0 +1,153 @@
+.activity-heatmap {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.heatmap-container {
+  display: flex;
+  gap: 8px;
+  min-width: fit-content;
+}
+
+.day-labels {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-top: 20px;
+}
+
+.day-labels span {
+  height: 12px;
+  font-size: 10px;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+}
+
+.heatmap-grid-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.month-labels {
+  display: grid;
+  grid-template-columns: repeat(53, 12px);
+  gap: 2px;
+  height: 16px;
+}
+
+.month-labels span {
+  font-size: 10px;
+  color: var(--text-secondary);
+}
+
+.heatmap-grid {
+  display: flex;
+  gap: 2px;
+}
+
+.week-column {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.day-cell {
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: transform 0.1s ease;
+}
+
+.day-cell:hover {
+  transform: scale(1.2);
+}
+
+.day-cell.empty {
+  visibility: hidden;
+}
+
+.day-cell.level-0 {
+  background: var(--bg-tertiary);
+}
+
+.day-cell.level-even {
+  background: #64748b;
+}
+
+/* Win levels - green shades */
+.day-cell.level-win-1 {
+  background: #86efac;
+}
+
+.day-cell.level-win-2 {
+  background: #22c55e;
+}
+
+.day-cell.level-win-3 {
+  background: #15803d;
+}
+
+/* Loss levels - red shades */
+.day-cell.level-loss-1 {
+  background: #fca5a5;
+}
+
+.day-cell.level-loss-2 {
+  background: #ef4444;
+}
+
+.day-cell.level-loss-3 {
+  background: #b91c1c;
+}
+
+.heatmap-legend {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 12px;
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+.legend-cells {
+  display: flex;
+  gap: 2px;
+}
+
+.legend-cells .day-cell {
+  cursor: default;
+}
+
+.legend-cells .day-cell:hover {
+  transform: none;
+}
+
+@media (prefers-color-scheme: dark) {
+  .day-cell.level-win-1 {
+    background: #166534;
+  }
+
+  .day-cell.level-win-2 {
+    background: #22c55e;
+  }
+
+  .day-cell.level-win-3 {
+    background: #4ade80;
+  }
+
+  .day-cell.level-loss-1 {
+    background: #991b1b;
+  }
+
+  .day-cell.level-loss-2 {
+    background: #ef4444;
+  }
+
+  .day-cell.level-loss-3 {
+    background: #fca5a5;
+  }
+}

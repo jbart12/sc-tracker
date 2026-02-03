@@ -5,6 +5,16 @@ export function formatCurrency(value: number): string {
   }).format(value);
 }
 
+export function formatCurrencyCompact(value: number, includeSign = false): string {
+  const formatted = new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(value);
+  return includeSign && value > 0 ? `+${formatted}` : formatted;
+}
+
 export function formatPercent(value: number): string {
   return `${value.toFixed(1)}%`;
 }

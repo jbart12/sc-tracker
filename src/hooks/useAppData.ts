@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
-import type { AppData, Session, Casino, CreditCard, CardDeposit } from '../models/types';
-import { loadAppData, loadAppDataAsync, saveAppDataAsync, generateId } from '../services/persistence';
+import type { AppData, Session, ArchivedSession, Casino, CreditCard, CardDeposit } from '../models/types';
+import { loadAppDataAsync, saveAppDataAsync, generateId } from '../services/persistence';
 
 export function useAppData() {
   const [data, setData] = useState<AppData | null>(null);
@@ -53,12 +53,52 @@ export function useAppData() {
     });
   }, []);
 
-  const deleteSession = useCallback((id: string) => {
+  // Archive session instead of deleting (soft delete)
+  const archiveSession = useCallback((id: string, reason?: string) => {
+    setData(prev => {
+      if (!prev) return prev;
+      const sessionToArchive = prev.sessions.find(s => s.id === id);
+      if (!sessionToArchive) return prev;
+
+      const archivedSession: ArchivedSession = {
+        ...sessionToArchive,
+        archivedAt: new Date().toISOString(),
+        archiveReason: reason,
+      };
+
+      return {
+        ...prev,
+        sessions: prev.sessions.filter(s => s.id !== id),
+        archivedSessions: [...(prev.archivedSessions || []), archivedSession],
+      };
+    });
+  }, []);
+
+  // Restore an archived session
+  const restoreSession = useCallback((id: string) => {
+    setData(prev => {
+      if (!prev) return prev;
+      const archived = (prev.archivedSessions || []).find(s => s.id === id);
+      if (!archived) return prev;
+
+      // Remove archive metadata and restore as regular session
+      const { archivedAt: _, archiveReason: __, ...restoredSession } = archived;
+
+      return {
+        ...prev,
+        sessions: [...prev.sessions, restoredSession as Session],
+        archivedSessions: (prev.archivedSessions || []).filter(s => s.id !== id),
+      };
+    });
+  }, []);
+
+  // Permanently delete an archived session (use with caution)
+  const permanentlyDeleteSession = useCallback((id: string) => {
     setData(prev => {
       if (!prev) return prev;
       return {
         ...prev,
-        sessions: prev.sessions.filter(s => s.id !== id),
+        archivedSessions: (prev.archivedSessions || []).filter(s => s.id !== id),
       };
     });
   }, []);
@@ -205,8 +245,8 @@ export function useAppData() {
   }, [data?.creditCards]);
 
   // Default empty data for loading state
-  const emptyData: AppData = { sessions: [], casinos: [], creditCards: [], schemaVersion: 6 };
-  const currentData = data || emptyData;
+  const emptyData: AppData = { sessions: [], archivedSessions: [], casinos: [], creditCards: [], schemaVersion: 7 };
+  const currentData = data ? { ...data, archivedSessions: data.archivedSessions || [] } : emptyData;
 
   const activeCasinos = currentData.casinos.filter(c => c.isActive);
   const activeCreditCards = currentData.creditCards.filter(c => c.isActive);
@@ -219,7 +259,9 @@ export function useAppData() {
     error,
     addSession,
     updateSession,
-    deleteSession,
+    archiveSession,
+    restoreSession,
+    permanentlyDeleteSession,
     combineSessions,
     addCasino,
     updateCasino,

@@ -2,7 +2,7 @@ import type { AppData, Casino, CreditCard, Session } from '../models/types';
 
 const STORAGE_KEY = 'sc-tracker-data';
 const API_BASE = '/api';
-const CURRENT_SCHEMA_VERSION = 6;
+const CURRENT_SCHEMA_VERSION = 7;
 
 const STAKE_US_PRESETS = [20, 50, 100, 200, 300, 500, 1000, 2000];
 
@@ -79,6 +79,7 @@ function getDefaultAppData(): AppData {
 
   return {
     sessions,
+    archivedSessions: [],
     casinos: DEFAULT_CASINOS,
     creditCards: [...DEFAULT_CREDIT_CARDS],
     schemaVersion: CURRENT_SCHEMA_VERSION,
@@ -204,6 +205,14 @@ function migrate(data: AppData): AppData {
         depositAmount: depositAmount,  // Keep for backward compat
       };
     });
+  }
+
+  // v6 -> v7: Add archived sessions support
+  if (migrated.schemaVersion < 7) {
+    // Ensure archivedSessions array exists
+    if (!migrated.archivedSessions) {
+      migrated.archivedSessions = [];
+    }
   }
 
   migrated.schemaVersion = CURRENT_SCHEMA_VERSION;

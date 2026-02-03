@@ -1,0 +1,171 @@
+.analytics {
+  padding: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.analytics-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.analytics-header h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.year-picker {
+  padding: 8px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  font-size: 0.875rem;
+  cursor: pointer;
+  min-width: 100px;
+}
+
+.year-picker:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-light);
+}
+
+.chart-card {
+  background: var(--bg-secondary);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 24px;
+}
+
+.chart-card h3 {
+  margin: 0 0 16px 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.chart-card.full-width {
+  width: 100%;
+}
+
+.charts-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24px;
+  margin-bottom: 24px;
+}
+
+.charts-grid .chart-card {
+  margin-bottom: 0;
+}
+
+.no-data {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  text-align: center;
+  padding: 40px 20px;
+  margin: 0;
+}
+
+.chart-error {
+  color: var(--color-danger);
+  font-size: 0.875rem;
+  text-align: center;
+  padding: 40px 20px;
+}
+
+.chart-error button {
+  margin-top: 12px;
+  padding: 8px 16px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  cursor: pointer;
+  color: var(--text-primary);
+}
+
+.chart-error button:hover {
+  background: var(--bg-secondary);
+}
+
+.loading {
+  color: var(--text-secondary);
+  text-align: center;
+  padding: 60px 20px;
+}
+
+/* RTP Gauge specific styles */
+.rtp-gauge {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.rtp-value {
+  position: absolute;
+  bottom: 50px;
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+.rtp-labels {
+  display: flex;
+  justify-content: space-between;
+  width: 80%;
+  max-width: 200px;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  margin-top: -20px;
+}
+
+/* Responsive layout */
+@media (max-width: 1024px) {
+  .charts-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .analytics {
+    padding: 16px;
+  }
+
+  .analytics-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .chart-card {
+    padding: 16px;
+  }
+}
+
+/* Recharts tooltip overrides for dark mode */
+.recharts-tooltip-wrapper {
+  outline: none;
+}
+
+.recharts-default-tooltip {
+  background: var(--bg-secondary) !important;
+  border: 1px solid var(--border-color) !important;
+  border-radius: 8px !important;
+}
+
+.recharts-tooltip-label {
+  color: var(--text-primary) !important;
+}
+
+.recharts-tooltip-item {
+  color: var(--text-secondary) !important;
+}
+
+/* Recharts legend overrides */
+.recharts-legend-item-text {
+  color: var(--text-secondary) !important;
+}

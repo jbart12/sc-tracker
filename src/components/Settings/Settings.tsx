@@ -1,12 +1,18 @@
 import { useState } from 'react';
 import { useApp } from '../../context/AppContext';
-import type { Casino, CreditCard } from '../../models/types';
+import type { Casino, CreditCard, ArchivedSession } from '../../models/types';
+import { ConfirmDialog } from '../ConfirmDialog/ConfirmDialog';
+import { formatCurrency, formatDate } from '../../utils/formatters';
+import { getTotalDeposit } from '../../utils/sessionUtils';
 import './Settings.css';
 
-type SettingsTab = 'casinos' | 'creditCards';
+type SettingsTab = 'casinos' | 'creditCards' | 'archived';
 
 export function Settings() {
   const [activeTab, setActiveTab] = useState<SettingsTab>('casinos');
+  const { data } = useApp();
+
+  const archivedCount = data.archivedSessions?.length || 0;
 
   return (
     <div className="settings">
@@ -23,9 +29,17 @@ export function Settings() {
         >
           Credit Cards
         </button>
+        <button
+          className={activeTab === 'archived' ? 'active' : ''}
+          onClick={() => setActiveTab('archived')}
+        >
+          Archived {archivedCount > 0 && <span className="badge">{archivedCount}</span>}
+        </button>
       </div>
 
-      {activeTab === 'casinos' ? <CasinosSection /> : <CreditCardsSection />}
+      {activeTab === 'casinos' && <CasinosSection />}
+      {activeTab === 'creditCards' && <CreditCardsSection />}
+      {activeTab === 'archived' && <ArchivedSessionsSection />}
     </div>
   );
 }
@@ -34,6 +48,7 @@ function CasinosSection() {
   const { data, addCasino, updateCasino, deleteCasino } = useApp();
   const [showForm, setShowForm] = useState(false);
   const [editingCasino, setEditingCasino] = useState<Casino | null>(null);
+  const [casinoToDelete, setCasinoToDelete] = useState<Casino | null>(null);
 
   const handleEdit = (casino: Casino) => {
     setEditingCasino(casino);
@@ -85,11 +100,7 @@ function CasinosSection() {
                 </button>
                 <button
                   className="btn-icon danger"
-                  onClick={() => {
-                    if (confirm(`Delete ${casino.name}?`)) {
-                      deleteCasino(casino.id);
-                    }
-                  }}
+                  onClick={() => setCasinoToDelete(casino)}
                 >
                   🗑️
                 </button>
@@ -113,6 +124,20 @@ function CasinosSection() {
           }}
         />
       )}
+
+      <ConfirmDialog
+        isOpen={casinoToDelete !== null}
+        title="Delete Casino?"
+        message={`Are you sure you want to delete "${casinoToDelete?.name}"? This action cannot be undone.`}
+        confirmLabel="Delete"
+        onConfirm={() => {
+          if (casinoToDelete) {
+            deleteCasino(casinoToDelete.id);
+            setCasinoToDelete(null);
+          }
+        }}
+        onCancel={() => setCasinoToDelete(null)}
+      />
     </div>
   );
 }
@@ -121,6 +146,7 @@ function CreditCardsSection() {
   const { data, addCreditCard, updateCreditCard, deleteCreditCard } = useApp();
   const [showForm, setShowForm] = useState(false);
   const [editingCard, setEditingCard] = useState<CreditCard | null>(null);
+  const [cardToDelete, setCardToDelete] = useState<CreditCard | null>(null);
 
   const handleEdit = (card: CreditCard) => {
     setEditingCard(card);
@@ -177,11 +203,7 @@ function CreditCardsSection() {
                 </button>
                 <button
                   className="btn-icon danger"
-                  onClick={() => {
-                    if (confirm(`Delete ${card.name}?`)) {
-                      deleteCreditCard(card.id);
-                    }
-                  }}
+                  onClick={() => setCardToDelete(card)}
                 >
                   🗑️
                 </button>
@@ -205,6 +227,111 @@ function CreditCardsSection() {
           }}
         />
       )}
+
+      <ConfirmDialog
+        isOpen={cardToDelete !== null}
+        title="Delete Credit Card?"
+        message={`Are you sure you want to delete "${cardToDelete?.name}"? This action cannot be undone.`}
+        confirmLabel="Delete"
+        onConfirm={() => {
+          if (cardToDelete) {
+            deleteCreditCard(cardToDelete.id);
+            setCardToDelete(null);
+          }
+        }}
+        onCancel={() => setCardToDelete(null)}
+      />
+    </div>
+  );
+}
+
+function ArchivedSessionsSection() {
+  const { data, restoreSession, permanentlyDeleteSession, getCasino } = useApp();
+  const [sessionToRestore, setSessionToRestore] = useState<ArchivedSession | null>(null);
+  const [sessionToDelete, setSessionToDelete] = useState<ArchivedSession | null>(null);
+
+  const archivedSessions = data.archivedSessions || [];
+
+  return (
+    <div className="settings-section">
+      <div className="section-header">
+        <h3>Archived Sessions</h3>
+      </div>
+
+      {archivedSessions.length === 0 ? (
+        <div className="empty-state">
+          <div className="empty-icon">📦</div>
+          <h3>No Archived Sessions</h3>
+          <p>Sessions you archive will appear here. You can restore them at any time.</p>
+        </div>
+      ) : (
+        <div className="item-list archived-list">
+          {archivedSessions.map(session => {
+            const casino = getCasino(session.casinoID);
+            const deposit = getTotalDeposit(session);
+            const net = session.withdrawalAmount - deposit;
+
+            return (
+              <div key={session.id} className="item-row archived-row">
+                <div className="item-info">
+                  <span className="item-name">
+                    {formatDate(session.date)} - {casino?.name || 'Unknown'}
+                  </span>
+                  <span className="item-detail">
+                    Deposit: {formatCurrency(deposit)} | Withdrawal: {formatCurrency(session.withdrawalAmount)} | Net: {formatCurrency(net)}
+                  </span>
+                  <span className="item-detail archived-date">
+                    Archived: {formatDate(session.archivedAt)}
+                  </span>
+                </div>
+                <div className="item-actions">
+                  <button
+                    className="btn-secondary"
+                    onClick={() => setSessionToRestore(session)}
+                  >
+                    Restore
+                  </button>
+                  <button
+                    className="btn-icon danger"
+                    onClick={() => setSessionToDelete(session)}
+                  >
+                    🗑️
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      <ConfirmDialog
+        isOpen={sessionToRestore !== null}
+        title="Restore Session?"
+        message="This session will be restored to your active sessions."
+        variant="warning"
+        confirmLabel="Restore"
+        onConfirm={() => {
+          if (sessionToRestore) {
+            restoreSession(sessionToRestore.id);
+            setSessionToRestore(null);
+          }
+        }}
+        onCancel={() => setSessionToRestore(null)}
+      />
+
+      <ConfirmDialog
+        isOpen={sessionToDelete !== null}
+        title="Permanently Delete?"
+        message="This will permanently delete this session. This action cannot be undone!"
+        confirmLabel="Delete Forever"
+        onConfirm={() => {
+          if (sessionToDelete) {
+            permanentlyDeleteSession(sessionToDelete.id);
+            setSessionToDelete(null);
+          }
+        }}
+        onCancel={() => setSessionToDelete(null)}
+      />
     </div>
   );
 }

@@ -16,6 +16,11 @@ export interface Session {
   notes?: string;
 }
 
+export interface ArchivedSession extends Session {
+  archivedAt: string; // ISO date string when archived
+  archiveReason?: string;
+}
+
 export interface Casino {
   id: string;
   name: string;
@@ -33,6 +38,7 @@ export interface CreditCard {
 
 export interface AppData {
   sessions: Session[];
+  archivedSessions: ArchivedSession[];
   casinos: Casino[];
   creditCards: CreditCard[];
   schemaVersion: number;

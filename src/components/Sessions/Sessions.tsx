@@ -5,10 +5,11 @@ import { getNetResult, isWin, isLoss, isPending, getRtpPercentage, sortByDateDes
 import { calculateSessionCashback } from '../../utils/taxCalculator';
 import { formatCurrency, formatDate, formatPercent } from '../../utils/formatters';
 import { SessionForm } from './SessionForm';
+import { ConfirmDialog } from '../ConfirmDialog/ConfirmDialog';
 import './Sessions.css';
 
 export function Sessions() {
-  const { data, deleteSession, updateSession, combineSessions, getCasino, getCreditCard } = useApp();
+  const { data, archiveSession, updateSession, combineSessions, getCasino, getCreditCard } = useApp();
   const [searchText, setSearchText] = useState('');
   const [casinoFilter, setCasinoFilter] = useState<string | null>(null);
   const [cardFilter, setCardFilter] = useState<string | null>(null);
@@ -19,6 +20,7 @@ export function Sessions() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [editingWithdrawalId, setEditingWithdrawalId] = useState<string | null>(null);
   const [editingWithdrawalValue, setEditingWithdrawalValue] = useState('');
+  const [sessionToArchive, setSessionToArchive] = useState<Session | null>(null);
   const withdrawalInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -392,12 +394,8 @@ export function Sessions() {
                         </button>
                         <button
                           className="btn-icon danger"
-                          onClick={() => {
-                            if (confirm('Delete this session?')) {
-                              deleteSession(session.id);
-                            }
-                          }}
-                          title="Delete"
+                          onClick={() => setSessionToArchive(session)}
+                          title="Archive"
                         >
                           🗑️
                         </button>
@@ -417,6 +415,21 @@ export function Sessions() {
           onClose={handleCloseForm}
         />
       )}
+
+      <ConfirmDialog
+        isOpen={sessionToArchive !== null}
+        title="Archive Session?"
+        message="This session will be moved to the archive. You can restore it later from Settings."
+        details={sessionToArchive ? `${formatDate(sessionToArchive.date)} - ${getCasino(sessionToArchive.casinoID)?.name || 'Unknown'}\nDeposit: ${formatCurrency(getTotalDeposit(sessionToArchive))} | Withdrawal: ${formatCurrency(sessionToArchive.withdrawalAmount)}` : ''}
+        confirmLabel="Archive"
+        onConfirm={() => {
+          if (sessionToArchive) {
+            archiveSession(sessionToArchive.id);
+            setSessionToArchive(null);
+          }
+        }}
+        onCancel={() => setSessionToArchive(null)}
+      />
     </div>
   );
 }

@@ -2,11 +2,12 @@ import { useState } from 'react';
 import { AppProvider, useApp } from './context/AppContext';
 import { Dashboard } from './components/Dashboard/Dashboard';
 import { Sessions } from './components/Sessions/Sessions';
+import { Analytics } from './components/Analytics/Analytics';
 import { TaxReport } from './components/TaxReport/TaxReport';
 import { Settings } from './components/Settings/Settings';
 import './App.css';
 
-type Tab = 'dashboard' | 'sessions' | 'taxReport' | 'settings';
+type Tab = 'dashboard' | 'sessions' | 'analytics' | 'taxReport' | 'settings';
 
 function ErrorBanner() {
   const { error } = useApp();
@@ -50,6 +51,15 @@ function App() {
             </li>
             <li>
               <button
+                className={activeTab === 'analytics' ? 'active' : ''}
+                onClick={() => setActiveTab('analytics')}
+              >
+                <span className="nav-icon">📈</span>
+                Analytics
+              </button>
+            </li>
+            <li>
+              <button
                 className={activeTab === 'taxReport' ? 'active' : ''}
                 onClick={() => setActiveTab('taxReport')}
               >
@@ -71,6 +81,7 @@ function App() {
         <main className="main-content">
           {activeTab === 'dashboard' && <Dashboard />}
           {activeTab === 'sessions' && <Sessions />}
+          {activeTab === 'analytics' && <Analytics />}
           {activeTab === 'taxReport' && <TaxReport />}
           {activeTab === 'settings' && <Settings />}
         </main>
