@@ -1165,19 +1165,6 @@
     },
     {
       "date": "2026-02-03T12:00:00.000Z",
-      "casinoID": "607379e3-32c2-49e6-9ff2-f47cb5e46374",
-      "cardDeposits": [
-        {
-          "creditCardID": "00000000-0000-0000-0000-000000000102",
-          "amount": 35
-        }
-      ],
-      "depositAmount": 35,
-      "withdrawalAmount": 0,
-      "id": "a91bbb79-7be8-4228-b3f4-191c40eb554f"
-    },
-    {
-      "date": "2026-02-03T12:00:00.000Z",
       "casinoID": "bc3915e7-2efb-43f5-adc6-52e5133e7c03",
       "cardDeposits": [
         {
@@ -1320,5 +1307,21 @@
       "id": "6f707610-e3cf-43a7-ad3b-7411f6442204"
     }
   ],
-  "schemaVersion": 7
+  "schemaVersion": 7,
+  "archivedSessions": [
+    {
+      "date": "2026-02-03T12:00:00.000Z",
+      "casinoID": "607379e3-32c2-49e6-9ff2-f47cb5e46374",
+      "cardDeposits": [
+        {
+          "creditCardID": "00000000-0000-0000-0000-000000000102",
+          "amount": 35
+        }
+      ],
+      "depositAmount": 35,
+      "withdrawalAmount": 0,
+      "id": "a91bbb79-7be8-4228-b3f4-191c40eb554f",
+      "archivedAt": "2026-02-04T13:40:32.842Z"
+    }
+  ]
 }
