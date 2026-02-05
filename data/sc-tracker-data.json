@@ -1306,6 +1306,12 @@
     {
       "id": "ec996196-8d90-47c5-a71c-3de321a927e0",
       "name": "DingDingDing"
+    },
+    {
+      "name": "Shuffle.us",
+      "isActive": true,
+      "depositPresets": [],
+      "id": "7dc55f33-c002-4020-be97-05674062dfcc"
     }
   ],
   "creditCards": [
