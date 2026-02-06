@@ -1350,6 +1350,12 @@
       "cashbackPercentage": 2,
       "isActive": true,
       "id": "6f707610-e3cf-43a7-ad3b-7411f6442204"
+    },
+    {
+      "name": "Citi Active Cash",
+      "cashbackPercentage": 2,
+      "isActive": true,
+      "id": "8629b7f1-f30f-44e6-b30b-429eb777862c"
     }
   ],
   "schemaVersion": 7,
