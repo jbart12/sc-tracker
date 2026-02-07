@@ -1312,10 +1312,10 @@
       "cardDeposits": [
         {
           "creditCardID": "8629b7f1-f30f-44e6-b30b-429eb777862c",
-          "amount": 2280
+          "amount": 2550
         }
       ],
-      "depositAmount": 2280,
+      "depositAmount": 2550,
       "withdrawalAmount": 0,
       "id": "0512d448-e52b-4758-a608-e4b9b61908dd"
     }
