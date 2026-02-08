@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
 import { calculateTax, calculateRTP, calculateCashback, calculateSessionCashback } from '../../utils/taxCalculator';
-import { filterByYear, filterByCasino, filterByCurrentWeek, getCurrentWeekRange, filterByMonth, getMonthRange, isPending, getTotalDeposit } from '../../utils/sessionUtils';
+import { filterByYear, filterByCasino, filterByCurrentWeek, getCurrentWeekRange, filterByMonth, getMonthRange, isPending, getTotalDeposit, getTotalForeignTransactionFees } from '../../utils/sessionUtils';
 import { formatCurrency, formatPercent } from '../../utils/formatters';
 import type { CasinoStats } from '../../models/types';
 import './Dashboard.css';
@@ -14,6 +14,7 @@ interface PeriodStats {
   netResult: number;
   netWithCashback: number;
   totalCashback: number;
+  totalForeignFees: number;
   rtpPercentage: number | null;
 }
 
@@ -91,7 +92,8 @@ export function Dashboard() {
 
     const totalDeposits = completedSessions.reduce((sum, s) => sum + getTotalDeposit(s), 0);
     const totalWithdrawals = completedSessions.reduce((sum, s) => sum + s.withdrawalAmount, 0);
-    const netResult = totalWithdrawals - totalDeposits;
+    const totalForeignFees = completedSessions.reduce((sum, s) => sum + getTotalForeignTransactionFees(s), 0);
+    const netResult = totalWithdrawals - totalDeposits - totalForeignFees;
     const totalCashback = calculateCashback(completedSessions, data.creditCards);
     const netWithCashback = netResult + totalCashback;
     const totalBet = totalDeposits * 3;
@@ -104,6 +106,7 @@ export function Dashboard() {
       netResult,
       netWithCashback,
       totalCashback,
+      totalForeignFees,
       rtpPercentage: calculateRTP(totalDeposits, totalWithdrawals),
       weekStart: start,
       weekEnd: end,
@@ -117,7 +120,8 @@ export function Dashboard() {
 
     const totalDeposits = completedSessions.reduce((sum, s) => sum + getTotalDeposit(s), 0);
     const totalWithdrawals = completedSessions.reduce((sum, s) => sum + s.withdrawalAmount, 0);
-    const netResult = totalWithdrawals - totalDeposits;
+    const totalForeignFees = completedSessions.reduce((sum, s) => sum + getTotalForeignTransactionFees(s), 0);
+    const netResult = totalWithdrawals - totalDeposits - totalForeignFees;
     const totalCashback = calculateCashback(completedSessions, data.creditCards);
     const netWithCashback = netResult + totalCashback;
     const totalBet = totalDeposits * 3;
@@ -130,6 +134,7 @@ export function Dashboard() {
       netResult,
       netWithCashback,
       totalCashback,
+      totalForeignFees,
       rtpPercentage: calculateRTP(totalDeposits, totalWithdrawals),
       monthStart: start,
       monthEnd: end,
@@ -142,7 +147,8 @@ export function Dashboard() {
 
     const totalDeposits = completedSessions.reduce((sum, s) => sum + getTotalDeposit(s), 0);
     const totalWithdrawals = completedSessions.reduce((sum, s) => sum + s.withdrawalAmount, 0);
-    const netResult = totalWithdrawals - totalDeposits;
+    const totalForeignFees = completedSessions.reduce((sum, s) => sum + getTotalForeignTransactionFees(s), 0);
+    const netResult = totalWithdrawals - totalDeposits - totalForeignFees;
     const totalCashback = calculateCashback(completedSessions, data.creditCards);
     const netWithCashback = netResult + totalCashback;
     const totalBet = totalDeposits * 3;
@@ -155,6 +161,7 @@ export function Dashboard() {
       netResult,
       netWithCashback,
       totalCashback,
+      totalForeignFees,
       rtpPercentage: calculateRTP(totalDeposits, totalWithdrawals),
       year: selectedYear,
     };
@@ -165,7 +172,8 @@ export function Dashboard() {
 
     const totalDeposits = completedSessions.reduce((sum, s) => sum + getTotalDeposit(s), 0);
     const totalWithdrawals = completedSessions.reduce((sum, s) => sum + s.withdrawalAmount, 0);
-    const netResult = totalWithdrawals - totalDeposits;
+    const totalForeignFees = completedSessions.reduce((sum, s) => sum + getTotalForeignTransactionFees(s), 0);
+    const netResult = totalWithdrawals - totalDeposits - totalForeignFees;
     const totalCashback = calculateCashback(completedSessions, data.creditCards);
     const netWithCashback = netResult + totalCashback;
     const totalBet = totalDeposits * 3;
@@ -178,6 +186,7 @@ export function Dashboard() {
       netResult,
       netWithCashback,
       totalCashback,
+      totalForeignFees,
       rtpPercentage: calculateRTP(totalDeposits, totalWithdrawals),
     };
   }, [data.sessions, data.creditCards]);
@@ -200,7 +209,8 @@ export function Dashboard() {
         const completedSessions = casinoSessions.filter(s => !isPending(s));
         const completedDeposits = completedSessions.reduce((sum, s) => sum + getTotalDeposit(s), 0);
         const totalWithdrawals = completedSessions.reduce((sum, s) => sum + s.withdrawalAmount, 0);
-        const netResult = totalWithdrawals - completedDeposits;
+        const totalForeignFees = completedSessions.reduce((sum, s) => sum + getTotalForeignTransactionFees(s), 0);
+        const netResult = totalWithdrawals - completedDeposits - totalForeignFees;
 
         // Calculate cashback for this casino's sessions
         const cashback = casinoSessions.reduce((sum, s) => sum + calculateSessionCashback(s, data.creditCards), 0);
