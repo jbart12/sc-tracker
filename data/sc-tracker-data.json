@@ -1208,7 +1208,8 @@
       "cardDeposits": [
         {
           "creditCardID": "00000000-0000-0000-0000-000000000102",
-          "amount": 2000
+          "amount": 2000,
+          "foreignTransactionFeePercent": 3
         }
       ],
       "depositAmount": 2000,
@@ -1247,7 +1248,8 @@
       "cardDeposits": [
         {
           "creditCardID": "00000000-0000-0000-0000-000000000102",
-          "amount": 500
+          "amount": 500,
+          "foreignTransactionFeePercent": 3
         }
       ],
       "depositAmount": 500,
@@ -1286,7 +1288,8 @@
       "cardDeposits": [
         {
           "creditCardID": "00000000-0000-0000-0000-000000000102",
-          "amount": 2000
+          "amount": 2000,
+          "foreignTransactionFeePercent": 3
         }
       ],
       "depositAmount": 2000,
