@@ -381,3 +381,66 @@
   color: var(--text-secondary);
   margin-top: 4px;
 }
+
+/* Fees row - cashback and foreign tx fee side by side */
+.card-fees-row {
+  display: flex;
+  gap: 16px;
+  margin-top: 8px;
+}
+
+.card-fees-row .card-cashback-group {
+  flex: 1;
+  margin-top: 0;
+}
+
+.card-fee-group {
+  flex: 1;
+}
+
+.card-fee-group label {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  margin-bottom: 4px;
+}
+
+.fee-input-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.fee-input {
+  flex: 1;
+  padding: 6px 8px;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background: var(--bg-tertiary);
+  color: var(--color-danger);
+  font-size: 0.875rem;
+  font-weight: 500;
+  max-width: 70px;
+}
+
+.fee-input:focus {
+  outline: none;
+  border-color: var(--color-danger);
+  box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.1);
+}
+
+.fee-input::placeholder {
+  color: var(--text-secondary);
+  font-weight: normal;
+}
+
+.fee-percent {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+}
+
+.fee-calc-hint {
+  font-size: 0.7rem;
+  color: var(--color-danger);
+  margin-top: 4px;
+}

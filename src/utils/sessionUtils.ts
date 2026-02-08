@@ -9,6 +9,19 @@ export function getTotalDeposit(session: Session): number {
   return session.depositAmount || 0;
 }
 
+// Get total foreign transaction fees from cardDeposits
+export function getTotalForeignTransactionFees(session: Session): number {
+  if (!session.cardDeposits || !Array.isArray(session.cardDeposits)) {
+    return 0;
+  }
+  return session.cardDeposits.reduce((sum, cd) => {
+    if (!cd.foreignTransactionFeePercent || cd.foreignTransactionFeePercent <= 0) {
+      return sum;
+    }
+    return sum + (cd.amount * cd.foreignTransactionFeePercent / 100);
+  }, 0);
+}
+
 // A session is pending if it has a deposit but no withdrawal yet
 export function isPending(session: Session): boolean {
   return getTotalDeposit(session) > 0 && session.withdrawalAmount === 0;

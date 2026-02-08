@@ -2,7 +2,7 @@ import type { AppData, Casino, CreditCard, Session } from '../models/types';
 
 const STORAGE_KEY = 'sc-tracker-data';
 const API_BASE = '/api';
-const CURRENT_SCHEMA_VERSION = 7;
+const CURRENT_SCHEMA_VERSION = 8;
 
 const STAKE_US_PRESETS = [20, 50, 100, 200, 300, 500, 1000, 2000];
 
@@ -212,6 +212,29 @@ function migrate(data: AppData): AppData {
     // Ensure archivedSessions array exists
     if (!migrated.archivedSessions) {
       migrated.archivedSessions = [];
+    }
+  }
+
+  // v7 -> v8: Add 3% foreign transaction fee to Shuffle.us sessions with Crypto.com Jade card
+  if (migrated.schemaVersion < 8) {
+    // Find Shuffle.us casino by name (since it's user-created, not a fixed ID)
+    const shuffleCasino = migrated.casinos.find(c => c.name.toLowerCase().includes('shuffle'));
+
+    if (shuffleCasino) {
+      migrated.sessions = migrated.sessions.map(session => {
+        if (session.casinoID !== shuffleCasino.id) return session;
+        if (!session.cardDeposits || !Array.isArray(session.cardDeposits)) return session;
+
+        // Update card deposits to add foreign transaction fee for Crypto.com Jade
+        const updatedDeposits = session.cardDeposits.map(cd => {
+          if (cd.creditCardID === CRYPTO_COM_JADE_ID && !cd.foreignTransactionFeePercent) {
+            return { ...cd, foreignTransactionFeePercent: 3 };
+          }
+          return cd;
+        });
+
+        return { ...session, cardDeposits: updatedDeposits };
+      });
     }
   }
 

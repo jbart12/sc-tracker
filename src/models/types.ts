@@ -4,6 +4,7 @@ export interface CardDeposit {
   creditCardID: string;
   amount: number;
   cashbackOverride?: number; // Optional override for calculated cashback
+  foreignTransactionFeePercent?: number; // Foreign transaction fee percentage (e.g., 3 for 3%)
 }
 
 export interface Session {

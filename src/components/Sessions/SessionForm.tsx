@@ -15,6 +15,7 @@ interface CardDepositFormState {
   creditCardID: string;
   amount: string;
   cashbackOverride: string; // Empty string means use calculated default
+  foreignTransactionFeePercent: string; // Empty string means no fee
 }
 
 export function SessionForm({ session, onClose }: SessionFormProps) {
@@ -34,12 +35,13 @@ export function SessionForm({ session, onClose }: SessionFormProps) {
         creditCardID: cd.creditCardID,
         amount: cd.amount.toString(),
         cashbackOverride: cd.cashbackOverride !== undefined ? cd.cashbackOverride.toString() : '',
+        foreignTransactionFeePercent: cd.foreignTransactionFeePercent !== undefined ? cd.foreignTransactionFeePercent.toString() : '',
       }));
     }
     // Default: Two sections for Wells Fargo and Crypto.com
     return [
-      { id: 'deposit-0', creditCardID: WELLS_FARGO_ACTIVE_CASH_ID, amount: '', cashbackOverride: '' },
-      { id: 'deposit-1', creditCardID: CRYPTO_COM_JADE_ID, amount: '', cashbackOverride: '' },
+      { id: 'deposit-0', creditCardID: WELLS_FARGO_ACTIVE_CASH_ID, amount: '', cashbackOverride: '', foreignTransactionFeePercent: '' },
+      { id: 'deposit-1', creditCardID: CRYPTO_COM_JADE_ID, amount: '', cashbackOverride: '', foreignTransactionFeePercent: '' },
     ];
   });
 
@@ -75,12 +77,19 @@ export function SessionForm({ session, onClose }: SessionFormProps) {
       return sum + (amount * card.cashbackPercentage / 100);
     }, 0);
 
+    const totalForeignFees = cardDeposits.reduce((sum, cd) => {
+      const feePercent = parseFloat(cd.foreignTransactionFeePercent) || 0;
+      if (feePercent <= 0) return sum;
+      const amount = parseFloat(cd.amount) || 0;
+      return sum + (amount * feePercent / 100);
+    }, 0);
+
     const withdrawal = parseFloat(withdrawalAmount) || 0;
-    const netResult = withdrawal - totalDeposits;
+    const netResult = withdrawal - totalDeposits - totalForeignFees;
     const netWithCashback = netResult + totalCashback;
     const rtpPercentage = totalDeposits > 0 ? (withdrawal / totalDeposits) * 100 : null;
 
-    return { totalDeposits, totalCashback, withdrawal, netResult, netWithCashback, rtpPercentage };
+    return { totalDeposits, totalCashback, totalForeignFees, withdrawal, netResult, netWithCashback, rtpPercentage };
   }, [cardDeposits, withdrawalAmount, data.creditCards]);
 
   // Get cashback for a specific card deposit
@@ -96,7 +105,7 @@ export function SessionForm({ session, onClose }: SessionFormProps) {
   const isValid = casinoID && hasValidDeposit;
 
   // Update a card deposit field
-  const updateCardDeposit = (id: string, field: 'creditCardID' | 'amount' | 'cashbackOverride', value: string) => {
+  const updateCardDeposit = (id: string, field: 'creditCardID' | 'amount' | 'cashbackOverride' | 'foreignTransactionFeePercent', value: string) => {
     setCardDeposits(prev => prev.map(cd =>
       cd.id === id ? { ...cd, [field]: value } : cd
     ));
@@ -124,6 +133,7 @@ export function SessionForm({ session, onClose }: SessionFormProps) {
         creditCardID: availableCard?.id || activeCreditCards[0]?.id || '',
         amount: '',
         cashbackOverride: '',
+        foreignTransactionFeePercent: '',
       }
     ]);
   };
@@ -156,6 +166,10 @@ export function SessionForm({ session, onClose }: SessionFormProps) {
         // Only include override if user explicitly set one
         if (cd.cashbackOverride !== '') {
           deposit.cashbackOverride = parseFloat(cd.cashbackOverride) || 0;
+        }
+        // Include foreign transaction fee if set
+        if (cd.foreignTransactionFeePercent !== '') {
+          deposit.foreignTransactionFeePercent = parseFloat(cd.foreignTransactionFeePercent) || 0;
         }
         return deposit;
       });
@@ -297,35 +311,59 @@ export function SessionForm({ session, onClose }: SessionFormProps) {
                   </div>
                 )}
 
-                <div className="card-cashback-group">
-                  <label>Cashback</label>
-                  <div className="cashback-input-wrapper">
-                    <span className="cashback-dollar">$</span>
-                    <input
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      className="cashback-input"
-                      value={cd.cashbackOverride !== '' ? cd.cashbackOverride : (cashback > 0 ? cashback.toFixed(2) : '')}
-                      onChange={(e) => updateCardDeposit(cd.id, 'cashbackOverride', e.target.value)}
-                      placeholder={cashback > 0 ? cashback.toFixed(2) : '0.00'}
-                    />
-                    {cd.cashbackOverride !== '' && (
-                      <button
-                        type="button"
-                        className="cashback-reset-btn"
-                        onClick={() => updateCardDeposit(cd.id, 'cashbackOverride', '')}
-                        title="Reset to calculated value"
-                      >
-                        Reset
-                      </button>
+                <div className="card-fees-row">
+                  <div className="card-cashback-group">
+                    <label>Cashback</label>
+                    <div className="cashback-input-wrapper">
+                      <span className="cashback-dollar">$</span>
+                      <input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        className="cashback-input"
+                        value={cd.cashbackOverride !== '' ? cd.cashbackOverride : (cashback > 0 ? cashback.toFixed(2) : '')}
+                        onChange={(e) => updateCardDeposit(cd.id, 'cashbackOverride', e.target.value)}
+                        placeholder={cashback > 0 ? cashback.toFixed(2) : '0.00'}
+                      />
+                      {cd.cashbackOverride !== '' && (
+                        <button
+                          type="button"
+                          className="cashback-reset-btn"
+                          onClick={() => updateCardDeposit(cd.id, 'cashbackOverride', '')}
+                          title="Reset to calculated value"
+                        >
+                          Reset
+                        </button>
+                      )}
+                    </div>
+                    {cd.cashbackOverride !== '' && cashback > 0 && (
+                      <div className="cashback-calc-hint">
+                        Calculated: {formatCurrency(cashback)}
+                      </div>
                     )}
                   </div>
-                  {cd.cashbackOverride !== '' && cashback > 0 && (
-                    <div className="cashback-calc-hint">
-                      Calculated: {formatCurrency(cashback)}
+
+                  <div className="card-fee-group">
+                    <label>Foreign Tx Fee</label>
+                    <div className="fee-input-wrapper">
+                      <input
+                        type="number"
+                        step="0.1"
+                        min="0"
+                        max="10"
+                        className="fee-input"
+                        value={cd.foreignTransactionFeePercent}
+                        onChange={(e) => updateCardDeposit(cd.id, 'foreignTransactionFeePercent', e.target.value)}
+                        placeholder="0"
+                      />
+                      <span className="fee-percent">%</span>
                     </div>
-                  )}
+                    {cd.foreignTransactionFeePercent !== '' && parseFloat(cd.foreignTransactionFeePercent) > 0 && (
+                      <div className="fee-calc-hint">
+                        = {formatCurrency((parseFloat(cd.amount) || 0) * (parseFloat(cd.foreignTransactionFeePercent) || 0) / 100)}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             );
@@ -366,6 +404,12 @@ export function SessionForm({ session, onClose }: SessionFormProps) {
               <span>Total Cashback</span>
               <span className="positive">{formatCurrency(calculations.totalCashback)}</span>
             </div>
+            {calculations.totalForeignFees > 0 && (
+              <div className="summary-row">
+                <span>Foreign Tx Fees</span>
+                <span className="negative">{formatCurrency(-calculations.totalForeignFees)}</span>
+              </div>
+            )}
             <div className="summary-row">
               <span>Withdrawal</span>
               <span>{formatCurrency(calculations.withdrawal)}</span>

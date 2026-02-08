@@ -1,7 +1,7 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
 import type { Session, SortOrder } from '../../models/types';
-import { getNetResult, isWin, isLoss, isPending, getRtpPercentage, sortByDateDescending, sortByDateAscending, getTotalDeposit } from '../../utils/sessionUtils';
+import { getNetResult, isPending, getRtpPercentage, sortByDateDescending, sortByDateAscending, getTotalDeposit, getTotalForeignTransactionFees } from '../../utils/sessionUtils';
 import { calculateSessionCashback } from '../../utils/taxCalculator';
 import { formatCurrency, formatDate, formatPercent } from '../../utils/formatters';
 import { SessionForm } from './SessionForm';
@@ -301,6 +301,7 @@ export function Sessions() {
                 <th className="number">Deposit</th>
                 <th className="number">Withdrawal</th>
                 <th className="number">Cashback</th>
+                <th className="number">Fees</th>
                 <th className="number">Net</th>
                 <th className="number">Net + CB</th>
                 <th className="number">Profit %</th>
@@ -314,7 +315,11 @@ export function Sessions() {
                 const deposit = getTotalDeposit(session);
                 const net = getNetResult(session);
                 const cashback = calculateSessionCashback(session, data.creditCards);
-                const netWithCashback = net + cashback;
+                const foreignFees = getTotalForeignTransactionFees(session);
+                // Net includes fees (withdrawal - deposit - fees)
+                const netWithFees = net - foreignFees;
+                // Net + CB subtracts fees from the final result
+                const netWithCashback = net + cashback - foreignFees;
                 const profitPercent = deposit > 0 ? (netWithCashback / deposit) * 100 : 0;
                 const rtp = getRtpPercentage(session);
                 const isSelected = selectedIds.has(session.id);
@@ -386,8 +391,11 @@ export function Sessions() {
                       )}
                     </td>
                     <td className="number">{formatCurrency(cashback)}</td>
-                    <td className={`number ${isPending(session) ? 'pending' : isWin(session) ? 'positive' : isLoss(session) ? 'negative' : ''}`}>
-                      {isPending(session) ? 'Pending' : formatCurrency(net)}
+                    <td className={`number ${foreignFees > 0 ? 'negative' : ''}`}>
+                      {foreignFees > 0 ? formatCurrency(-foreignFees) : '-'}
+                    </td>
+                    <td className={`number ${isPending(session) ? 'pending' : netWithFees > 0 ? 'positive' : netWithFees < 0 ? 'negative' : ''}`}>
+                      {isPending(session) ? 'Pending' : formatCurrency(netWithFees)}
                     </td>
                     <td className={`number ${isPending(session) ? 'pending' : netWithCashback > 0 ? 'positive' : netWithCashback < 0 ? 'negative' : ''}`}>
                       {isPending(session) ? 'Pending' : formatCurrency(netWithCashback)}
