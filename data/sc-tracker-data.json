@@ -1471,6 +1471,12 @@
       "isActive": true,
       "depositPresets": [],
       "id": "7dc55f33-c002-4020-be97-05674062dfcc"
+    },
+    {
+      "name": "LuckyLand",
+      "isActive": true,
+      "depositPresets": [],
+      "id": "db33ed6d-a6be-4318-93db-d5dd5bbabf3c"
     }
   ],
   "creditCards": [
