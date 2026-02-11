@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { Component, useState } from 'react';
+import type { ReactNode, ErrorInfo } from 'react';
 import { AppProvider, useApp } from './context/AppContext';
 import { Dashboard } from './components/Dashboard/Dashboard';
 import { Sessions } from './components/Sessions/Sessions';
@@ -8,6 +9,39 @@ import { Settings } from './components/Settings/Settings';
 import './App.css';
 
 type Tab = 'dashboard' | 'sessions' | 'analytics' | 'taxReport' | 'settings';
+
+class AppErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean; error: Error | null }> {
+  constructor(props: { children: ReactNode }) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    console.error('App crash:', error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div style={{ padding: '2rem', textAlign: 'center', fontFamily: 'system-ui' }}>
+          <h1>Something went wrong</h1>
+          <p style={{ color: '#888', marginBottom: '1rem' }}>{this.state.error?.message}</p>
+          <button
+            onClick={() => window.location.reload()}
+            style={{ padding: '0.5rem 1.5rem', fontSize: '1rem', cursor: 'pointer' }}
+          >
+            Reload App
+          </button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 function ErrorBanner() {
   const { error } = useApp();
@@ -25,6 +59,7 @@ function App() {
   const [activeTab, setActiveTab] = useState<Tab>('dashboard');
 
   return (
+    <AppErrorBoundary>
     <AppProvider>
       <ErrorBanner />
       <div className="app">
@@ -87,6 +122,7 @@ function App() {
         </main>
       </div>
     </AppProvider>
+    </AppErrorBoundary>
   );
 }
 

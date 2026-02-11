@@ -1,12 +1,12 @@
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
-const { execSync } = require('child_process');
+const { exec } = require('child_process');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
-const DATA_FILE = process.env.DATA_FILE || '/data/sc-tracker-data.json';
 const PROJECT_ROOT = process.env.PROJECT_ROOT || path.resolve(__dirname, '..');
+const DATA_FILE = process.env.DATA_FILE || path.join(PROJECT_ROOT, 'data', 'sc-tracker-data.json');
 const AUTO_COMMIT = process.env.AUTO_COMMIT !== 'false'; // Enable by default
 
 app.use(express.json({ limit: '10mb' }));
@@ -33,30 +33,37 @@ app.get('/api/data', (req, res) => {
   }
 });
 
-// Auto-commit and push data file changes
-function autoCommitAndPush() {
-  if (!AUTO_COMMIT) return;
+// Run a shell command asynchronously with a timeout
+function run(cmd) {
+  return new Promise((resolve, reject) => {
+    exec(cmd, { cwd: PROJECT_ROOT, timeout: 15000 }, (error, stdout) => {
+      if (error) reject(error);
+      else resolve(stdout.trim());
+    });
+  });
+}
+
+// Prevent overlapping git operations
+let commitInProgress = false;
+
+// Auto-commit and push data file changes (non-blocking)
+async function autoCommitAndPush() {
+  if (!AUTO_COMMIT || commitInProgress) return;
+  commitInProgress = true;
 
   try {
-    // Check if file has changes
-    const status = execSync('git status --porcelain data/sc-tracker-data.json', {
-      cwd: PROJECT_ROOT,
-      encoding: 'utf8'
-    }).trim();
+    const status = await run('git status --porcelain data/sc-tracker-data.json');
+    if (!status) return;
 
-    if (!status) {
-      return; // No changes to commit
-    }
-
-    // Stage, commit, and push
-    execSync('git add data/sc-tracker-data.json', { cwd: PROJECT_ROOT });
-    execSync('git commit -m "Auto-save data"', { cwd: PROJECT_ROOT });
-    execSync('git push', { cwd: PROJECT_ROOT });
+    await run('git add data/sc-tracker-data.json');
+    await run('git commit -m "Auto-save data"');
+    await run('git push');
 
     console.log('Auto-committed and pushed data changes');
   } catch (error) {
-    // Don't fail the request if git operations fail
     console.error('Auto-commit failed:', error.message);
+  } finally {
+    commitInProgress = false;
   }
 }
 
