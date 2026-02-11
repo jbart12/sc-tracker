@@ -1373,6 +1373,19 @@
       "depositAmount": 520,
       "withdrawalAmount": 509,
       "id": "6080adf1-69b3-4aef-ae6a-119a4899a84b"
+    },
+    {
+      "date": "2026-02-11T12:00:00.000Z",
+      "casinoID": "db33ed6d-a6be-4318-93db-d5dd5bbabf3c",
+      "cardDeposits": [
+        {
+          "creditCardID": "00000000-0000-0000-0000-000000000101",
+          "amount": 1000
+        }
+      ],
+      "depositAmount": 1000,
+      "withdrawalAmount": 0,
+      "id": "f08c0da6-55c8-4612-a24d-2d25f988ab27"
     }
   ],
   "casinos": [
