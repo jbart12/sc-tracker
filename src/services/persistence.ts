@@ -262,11 +262,41 @@ function clearLocalStorage(): void {
   }
 }
 
+// Fetch with timeout (10s default)
+async function fetchWithTimeout(url: string, options: RequestInit = {}, timeoutMs = 10000): Promise<Response> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const response = await fetch(url, { ...options, signal: controller.signal });
+    return response;
+  } catch (err: any) {
+    if (err.name === 'AbortError') {
+      throw new Error('Request timed out');
+    }
+    throw err;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+// Parse error detail from server JSON response
+async function parseErrorDetail(response: Response): Promise<string> {
+  try {
+    const body = await response.json();
+    if (body.detail) return body.detail;
+    if (body.error) return body.error;
+  } catch {
+    // response wasn't JSON
+  }
+  return response.statusText;
+}
+
 // Load data from API
 export async function loadAppDataAsync(): Promise<AppData> {
-  const response = await fetch(`${API_BASE}/data`);
+  const response = await fetchWithTimeout(`${API_BASE}/data`);
   if (!response.ok) {
-    throw new Error('Failed to fetch data from API - is the server running?');
+    const detail = await parseErrorDetail(response);
+    throw new Error(`Failed to load data (HTTP ${response.status}): ${detail}`);
   }
 
   const apiData = await response.json();
@@ -294,7 +324,7 @@ export async function loadAppDataAsync(): Promise<AppData> {
 
 // Save data to API
 export async function saveAppDataAsync(data: AppData): Promise<void> {
-  const response = await fetch(`${API_BASE}/data`, {
+  const response = await fetchWithTimeout(`${API_BASE}/data`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -303,7 +333,8 @@ export async function saveAppDataAsync(data: AppData): Promise<void> {
   });
 
   if (!response.ok) {
-    throw new Error('Failed to save data to API - is the server running?');
+    const detail = await parseErrorDetail(response);
+    throw new Error(`Failed to save data (HTTP ${response.status}): ${detail}`);
   }
 }
 

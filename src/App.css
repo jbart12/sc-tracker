@@ -20,6 +20,15 @@
   font-size: 0.875rem;
 }
 
+.error-banner--save {
+  background: #d97706;
+}
+
+.error-banner-actions {
+  display: flex;
+  gap: 8px;
+}
+
 .error-banner button {
   background: white;
   color: #dc2626;
@@ -30,8 +39,26 @@
   cursor: pointer;
 }
 
+.error-banner--save button {
+  color: #d97706;
+}
+
+.error-banner-dismiss {
+  background: transparent !important;
+  color: white !important;
+  border: 1px solid rgba(255, 255, 255, 0.5) !important;
+}
+
 .error-banner button:hover {
   background: #fee2e2;
+}
+
+.error-banner--save button:hover {
+  background: #fef3c7;
+}
+
+.error-banner-dismiss:hover {
+  background: rgba(255, 255, 255, 0.15) !important;
 }
 
 .sidebar {

@@ -1,36 +1,126 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import type { AppData, Session, ArchivedSession, Casino, CreditCard, CardDeposit } from '../models/types';
 import { loadAppDataAsync, saveAppDataAsync, generateId } from '../services/persistence';
+
+const SAVE_DEBOUNCE_MS = 500;
+const MAX_RETRIES = 3;
+const RETRY_BASE_MS = 1000; // 1s, 2s, 4s
 
 export function useAppData() {
   const [data, setData] = useState<AppData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [saveError, setSaveError] = useState<string | null>(null);
+
+  // Refs for debounce and retry
+  const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const retryTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const retryCount = useRef(0);
+  const pendingData = useRef<AppData | null>(null);
+  const isSaving = useRef(false);
+
+  // Combined error for backward compat
+  const error = loadError || saveError;
+
+  // Perform the actual save with retry logic
+  const doSave = useCallback(async (dataToSave: AppData, attempt = 0) => {
+    isSaving.current = true;
+    try {
+      await saveAppDataAsync(dataToSave);
+      // Success — clear save error and retry count
+      setSaveError(null);
+      retryCount.current = 0;
+      isSaving.current = false;
+    } catch (err: any) {
+      isSaving.current = false;
+      const message = err?.message || 'Save failed';
+      console.error(`Save failed (attempt ${attempt + 1}/${MAX_RETRIES}):`, message);
+
+      if (attempt + 1 < MAX_RETRIES) {
+        const delay = RETRY_BASE_MS * Math.pow(2, attempt); // 1s, 2s, 4s
+        console.log(`Retrying save in ${delay}ms...`);
+        retryCount.current = attempt + 1;
+        retryTimer.current = setTimeout(() => {
+          // Use the latest pending data if available, otherwise the original
+          const latest = pendingData.current || dataToSave;
+          pendingData.current = null;
+          doSave(latest, attempt + 1);
+        }, delay);
+      } else {
+        // All retries exhausted
+        retryCount.current = 0;
+        setSaveError(message);
+      }
+    }
+  }, []);
+
+  // Schedule a debounced save
+  const scheduleSave = useCallback((dataToSave: AppData) => {
+    // Clear any pending debounce
+    if (debounceTimer.current) {
+      clearTimeout(debounceTimer.current);
+    }
+    // If a retry is in progress, store as pending so the retry picks up the latest
+    if (retryTimer.current) {
+      pendingData.current = dataToSave;
+      return;
+    }
+    debounceTimer.current = setTimeout(() => {
+      debounceTimer.current = null;
+      doSave(dataToSave);
+    }, SAVE_DEBOUNCE_MS);
+  }, [doSave]);
 
   // Load data from API (JSON file) on mount
   useEffect(() => {
     loadAppDataAsync()
       .then(apiData => {
         setData(apiData);
-        setError(null);
+        setLoadError(null);
         setIsLoading(false);
       })
-      .catch(error => {
-        console.error('Failed to load data from API:', error);
-        setError('Unable to connect to server. Please make sure the API server is running.');
+      .catch(err => {
+        console.error('Failed to load data from API:', err);
+        setLoadError('Unable to connect to server. Please make sure the API server is running.');
         setIsLoading(false);
       });
+
+    // Cleanup timers on unmount
+    return () => {
+      if (debounceTimer.current) clearTimeout(debounceTimer.current);
+      if (retryTimer.current) clearTimeout(retryTimer.current);
+    };
   }, []);
 
-  // Save data to API (JSON file) whenever it changes
+  // Save data whenever it changes (no error guard — save errors are recoverable)
   useEffect(() => {
-    if (!isLoading && data && !error) {
-      saveAppDataAsync(data).catch(err => {
-        console.error('Failed to save:', err);
-        setError('Unable to save data. Please make sure the API server is running.');
-      });
+    if (!isLoading && data) {
+      scheduleSave(data);
     }
-  }, [data, isLoading, error]);
+  }, [data, isLoading, scheduleSave]);
+
+  // Manual retry — immediately re-POST the current data
+  const retrySave = useCallback(() => {
+    if (!data) return;
+    // Cancel any pending timers
+    if (debounceTimer.current) clearTimeout(debounceTimer.current);
+    if (retryTimer.current) clearTimeout(retryTimer.current);
+    retryTimer.current = null;
+    debounceTimer.current = null;
+    retryCount.current = 0;
+    setSaveError(null);
+    doSave(data);
+  }, [data, doSave]);
+
+  // Dismiss save error — next data change will trigger a new save attempt
+  const clearError = useCallback(() => {
+    setSaveError(null);
+    retryCount.current = 0;
+    if (retryTimer.current) {
+      clearTimeout(retryTimer.current);
+      retryTimer.current = null;
+    }
+  }, []);
 
   // Sessions
   const addSession = useCallback((session: Omit<Session, 'id'>) => {
@@ -257,6 +347,10 @@ export function useAppData() {
     data: currentData,
     isLoading,
     error,
+    loadError,
+    saveError,
+    clearError,
+    retrySave,
     addSession,
     updateSession,
     archiveSession,

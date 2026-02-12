@@ -44,15 +44,30 @@ class AppErrorBoundary extends Component<{ children: ReactNode }, { hasError: bo
 }
 
 function ErrorBanner() {
-  const { error } = useApp();
-  if (!error) return null;
+  const { loadError, saveError, clearError, retrySave } = useApp();
 
-  return (
-    <div className="error-banner">
-      <strong>Server Error:</strong> {error}
-      <button onClick={() => window.location.reload()}>Retry</button>
-    </div>
-  );
+  if (loadError) {
+    return (
+      <div className="error-banner">
+        <strong>Connection Error:</strong> {loadError}
+        <button onClick={() => window.location.reload()}>Reload</button>
+      </div>
+    );
+  }
+
+  if (saveError) {
+    return (
+      <div className="error-banner error-banner--save">
+        <strong>Save Error:</strong> {saveError}
+        <div className="error-banner-actions">
+          <button onClick={retrySave}>Retry Save</button>
+          <button className="error-banner-dismiss" onClick={clearError}>Dismiss</button>
+        </div>
+      </div>
+    );
+  }
+
+  return null;
 }
 
 function App() {
