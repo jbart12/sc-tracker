@@ -64,17 +64,25 @@ function run(cmd) {
   });
 }
 
-// Write queue — serializes file writes and git operations so they can't conflict
-let writeQueue = Promise.resolve();
+// Separate queues: file writes must not block behind slow git operations
+let fileQueue = Promise.resolve();
+let gitQueue = Promise.resolve();
 
-function enqueueWrite(fn) {
-  writeQueue = writeQueue.then(fn).catch(err => {
-    console.error('Write queue error:', err.message);
+function enqueueFileWrite(fn) {
+  fileQueue = fileQueue.then(fn).catch(err => {
+    console.error('File write queue error:', err.message);
   });
-  return writeQueue;
+  return fileQueue;
 }
 
-// Auto-commit and push data file changes (non-blocking)
+function enqueueGitOp(fn) {
+  gitQueue = gitQueue.then(fn).catch(err => {
+    console.error('Git queue error:', err.message);
+  });
+  return gitQueue;
+}
+
+// Auto-commit and push data file changes (runs in git queue, never blocks saves)
 async function autoCommitAndPush() {
   if (!AUTO_COMMIT) return;
 
@@ -96,13 +104,13 @@ async function autoCommitAndPush() {
 app.post('/api/data', (req, res) => {
   const data = req.body;
 
-  enqueueWrite(async () => {
+  enqueueFileWrite(async () => {
     try {
       fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2));
       res.json({ success: true });
 
-      // Auto-commit in background (don't block response)
-      setImmediate(() => enqueueWrite(autoCommitAndPush));
+      // Auto-commit in separate git queue (never blocks file writes)
+      enqueueGitOp(autoCommitAndPush);
     } catch (error) {
       console.error('Error writing data file:', error);
       res.status(500).json({ error: 'Failed to write data', detail: error.message });
@@ -112,7 +120,7 @@ app.post('/api/data', (req, res) => {
 
 // Health check
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok' });
+  res.json({ status: 'ok', timestamp: Date.now() });
 });
 
 // Express error middleware (4-param handler)
@@ -121,10 +129,29 @@ app.use((err, req, res, _next) => {
   res.status(500).json({ error: 'Internal server error', detail: err.message });
 });
 
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`SC Tracker API server running on port ${PORT}`);
   console.log(`Data file: ${DATA_FILE}`);
 });
+
+// Graceful shutdown — drain both queues before exiting
+function gracefulShutdown(signal) {
+  console.log(`\n${signal} received. Draining queues...`);
+  Promise.all([fileQueue, gitQueue])
+    .then(() => {
+      console.log('Queues drained. Shutting down.');
+      server.close(() => process.exit(0));
+      // Force exit after 5s if server.close hangs
+      setTimeout(() => process.exit(0), 5000);
+    })
+    .catch(err => {
+      console.error('Error draining queues:', err.message);
+      process.exit(1);
+    });
+}
+
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 
 process.on('uncaughtException', (err) => {
   console.error('Uncaught exception:', err);

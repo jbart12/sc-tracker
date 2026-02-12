@@ -279,6 +279,20 @@ async function fetchWithTimeout(url: string, options: RequestInit = {}, timeoutM
   }
 }
 
+const EMERGENCY_BACKUP_KEY = 'sc-tracker-unsaved';
+
+// Translate opaque browser/network errors into user-friendly messages
+function classifyError(err: unknown): string {
+  const msg = err instanceof Error ? err.message : String(err);
+  if (/Failed to fetch|Load failed|NetworkError|network/i.test(msg)) {
+    return 'Server is not reachable. It may have stopped or restarted.';
+  }
+  if (/Request timed out|AbortError|timeout/i.test(msg)) {
+    return 'Server took too long to respond.';
+  }
+  return msg;
+}
+
 // Parse error detail from server JSON response
 async function parseErrorDetail(response: Response): Promise<string> {
   try {
@@ -293,7 +307,12 @@ async function parseErrorDetail(response: Response): Promise<string> {
 
 // Load data from API
 export async function loadAppDataAsync(): Promise<AppData> {
-  const response = await fetchWithTimeout(`${API_BASE}/data`);
+  let response: Response;
+  try {
+    response = await fetchWithTimeout(`${API_BASE}/data`);
+  } catch (err) {
+    throw new Error(classifyError(err));
+  }
   if (!response.ok) {
     const detail = await parseErrorDetail(response);
     throw new Error(`Failed to load data (HTTP ${response.status}): ${detail}`);
@@ -303,6 +322,8 @@ export async function loadAppDataAsync(): Promise<AppData> {
 
   if (apiData) {
     // Data exists in file, migrate if needed
+    // Clear any stale emergency backup now that we loaded successfully
+    clearEmergencyBackup();
     return migrate(apiData);
   }
 
@@ -324,17 +345,47 @@ export async function loadAppDataAsync(): Promise<AppData> {
 
 // Save data to API
 export async function saveAppDataAsync(data: AppData): Promise<void> {
-  const response = await fetchWithTimeout(`${API_BASE}/data`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(data),
-  });
+  let response: Response;
+  try {
+    response = await fetchWithTimeout(`${API_BASE}/data`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+  } catch (err) {
+    throw new Error(classifyError(err));
+  }
 
   if (!response.ok) {
     const detail = await parseErrorDetail(response);
     throw new Error(`Failed to save data (HTTP ${response.status}): ${detail}`);
+  }
+}
+
+// Emergency backup to localStorage when server is unreachable
+export function stashEmergencyBackup(data: AppData): void {
+  try {
+    localStorage.setItem(EMERGENCY_BACKUP_KEY, JSON.stringify(data));
+  } catch {
+    // localStorage may be full or unavailable
+  }
+}
+
+export function clearEmergencyBackup(): void {
+  try {
+    localStorage.removeItem(EMERGENCY_BACKUP_KEY);
+  } catch {
+    // Ignore errors
+  }
+}
+
+export function hasEmergencyBackup(): boolean {
+  try {
+    return localStorage.getItem(EMERGENCY_BACKUP_KEY) !== null;
+  } catch {
+    return false;
   }
 }
 

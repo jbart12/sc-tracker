@@ -58,7 +58,10 @@ function ErrorBanner() {
   if (saveError) {
     return (
       <div className="error-banner error-banner--save">
-        <strong>Save Error:</strong> {saveError}
+        <div>
+          <strong>Save Error:</strong> {saveError}
+          <div className="error-hint">Your changes are safe in memory and will be saved when the connection resumes.</div>
+        </div>
         <div className="error-banner-actions">
           <button onClick={retrySave}>Retry Save</button>
           <button className="error-banner-dismiss" onClick={clearError}>Dismiss</button>
@@ -67,6 +70,50 @@ function ErrorBanner() {
     );
   }
 
+  return null;
+}
+
+function SaveStatusIndicator() {
+  const { saveStatus, connectionStatus } = useApp();
+
+  // Offline takes priority
+  if (connectionStatus === 'disconnected') {
+    return (
+      <div className="save-status save-status--offline">
+        <span className="save-status-dot" />
+        Offline
+      </div>
+    );
+  }
+
+  if (saveStatus === 'saving') {
+    return (
+      <div className="save-status save-status--saving">
+        <span className="save-status-dot" />
+        Saving...
+      </div>
+    );
+  }
+
+  if (saveStatus === 'saved') {
+    return (
+      <div className="save-status save-status--saved">
+        <span className="save-status-dot" />
+        Saved
+      </div>
+    );
+  }
+
+  if (saveStatus === 'error') {
+    return (
+      <div className="save-status save-status--error">
+        <span className="save-status-dot" />
+        Save failed
+      </div>
+    );
+  }
+
+  // idle + connected — hidden
   return null;
 }
 
@@ -127,6 +174,9 @@ function App() {
               </button>
             </li>
           </ul>
+          <div className="sidebar-footer">
+            <SaveStatusIndicator />
+          </div>
         </nav>
         <main className="main-content">
           {activeTab === 'dashboard' && <Dashboard />}

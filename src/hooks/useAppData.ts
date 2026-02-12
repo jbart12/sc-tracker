@@ -1,36 +1,105 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import type { AppData, Session, ArchivedSession, Casino, CreditCard, CardDeposit } from '../models/types';
-import { loadAppDataAsync, saveAppDataAsync, generateId } from '../services/persistence';
+import {
+  loadAppDataAsync,
+  saveAppDataAsync,
+  generateId,
+  stashEmergencyBackup,
+  clearEmergencyBackup,
+} from '../services/persistence';
 
 const SAVE_DEBOUNCE_MS = 500;
 const MAX_RETRIES = 3;
 const RETRY_BASE_MS = 1000; // 1s, 2s, 4s
+const BACKGROUND_RETRY_MS = 15000;
+
+export type SaveStatus = 'idle' | 'saving' | 'saved' | 'error';
 
 export function useAppData() {
   const [data, setData] = useState<AppData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
 
   // Refs for debounce and retry
   const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const retryTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const backgroundRetryTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const savedResetTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const retryCount = useRef(0);
   const pendingData = useRef<AppData | null>(null);
   const isSaving = useRef(false);
+  const hasUnsavedChanges = useRef(false);
+  const latestData = useRef<AppData | null>(null);
+  const isFirstLoad = useRef(true);
+
+  // Keep latestData in sync
+  useEffect(() => {
+    latestData.current = data;
+  }, [data]);
 
   // Combined error for backward compat
   const error = loadError || saveError;
 
+  // Background retry loop — retries every 15s after fast retries fail
+  const startBackgroundRetry = useCallback((dataToSave: AppData) => {
+    // Don't start if already running
+    if (backgroundRetryTimer.current) return;
+
+    const attempt = () => {
+      const current = latestData.current || dataToSave;
+      isSaving.current = true;
+      setSaveStatus('saving');
+      saveAppDataAsync(current)
+        .then(() => {
+          isSaving.current = false;
+          hasUnsavedChanges.current = false;
+          setSaveError(null);
+          setSaveStatus('saved');
+          clearEmergencyBackup();
+          backgroundRetryTimer.current = null;
+          // Auto-reset to idle after 2s
+          savedResetTimer.current = setTimeout(() => setSaveStatus('idle'), 2000);
+        })
+        .catch(() => {
+          isSaving.current = false;
+          setSaveStatus('error');
+          // Schedule next background attempt
+          backgroundRetryTimer.current = setTimeout(attempt, BACKGROUND_RETRY_MS);
+        });
+    };
+
+    backgroundRetryTimer.current = setTimeout(attempt, BACKGROUND_RETRY_MS);
+  }, []);
+
+  const stopBackgroundRetry = useCallback(() => {
+    if (backgroundRetryTimer.current) {
+      clearTimeout(backgroundRetryTimer.current);
+      backgroundRetryTimer.current = null;
+    }
+  }, []);
+
   // Perform the actual save with retry logic
   const doSave = useCallback(async (dataToSave: AppData, attempt = 0) => {
     isSaving.current = true;
+    setSaveStatus('saving');
+    if (savedResetTimer.current) {
+      clearTimeout(savedResetTimer.current);
+      savedResetTimer.current = null;
+    }
     try {
       await saveAppDataAsync(dataToSave);
       // Success — clear save error and retry count
-      setSaveError(null);
-      retryCount.current = 0;
       isSaving.current = false;
+      hasUnsavedChanges.current = false;
+      setSaveError(null);
+      setSaveStatus('saved');
+      clearEmergencyBackup();
+      stopBackgroundRetry();
+      // Auto-reset to idle after 2s
+      savedResetTimer.current = setTimeout(() => setSaveStatus('idle'), 2000);
+      retryCount.current = 0;
     } catch (err: any) {
       isSaving.current = false;
       const message = err?.message || 'Save failed';
@@ -47,21 +116,30 @@ export function useAppData() {
           doSave(latest, attempt + 1);
         }, delay);
       } else {
-        // All retries exhausted
+        // All fast retries exhausted — show error, stash backup, start background retry
         retryCount.current = 0;
         setSaveError(message);
+        setSaveStatus('error');
+        stashEmergencyBackup(dataToSave);
+        startBackgroundRetry(dataToSave);
       }
     }
-  }, []);
+  }, [startBackgroundRetry, stopBackgroundRetry]);
 
   // Schedule a debounced save
   const scheduleSave = useCallback((dataToSave: AppData) => {
+    hasUnsavedChanges.current = true;
     // Clear any pending debounce
     if (debounceTimer.current) {
       clearTimeout(debounceTimer.current);
     }
     // If a retry is in progress, store as pending so the retry picks up the latest
     if (retryTimer.current) {
+      pendingData.current = dataToSave;
+      return;
+    }
+    // If background retry is running, store pending and let it pick up latest
+    if (backgroundRetryTimer.current) {
       pendingData.current = dataToSave;
       return;
     }
@@ -89,12 +167,29 @@ export function useAppData() {
     return () => {
       if (debounceTimer.current) clearTimeout(debounceTimer.current);
       if (retryTimer.current) clearTimeout(retryTimer.current);
+      if (backgroundRetryTimer.current) clearTimeout(backgroundRetryTimer.current);
+      if (savedResetTimer.current) clearTimeout(savedResetTimer.current);
     };
   }, []);
 
-  // Save data whenever it changes (no error guard — save errors are recoverable)
+  // beforeunload protection
+  useEffect(() => {
+    const handler = (e: BeforeUnloadEvent) => {
+      if (hasUnsavedChanges.current) {
+        e.preventDefault();
+      }
+    };
+    window.addEventListener('beforeunload', handler);
+    return () => window.removeEventListener('beforeunload', handler);
+  }, []);
+
+  // Save data whenever it changes (skip the initial load — no need to re-save what we just loaded)
   useEffect(() => {
     if (!isLoading && data) {
+      if (isFirstLoad.current) {
+        isFirstLoad.current = false;
+        return;
+      }
       scheduleSave(data);
     }
   }, [data, isLoading, scheduleSave]);
@@ -105,21 +200,24 @@ export function useAppData() {
     // Cancel any pending timers
     if (debounceTimer.current) clearTimeout(debounceTimer.current);
     if (retryTimer.current) clearTimeout(retryTimer.current);
+    stopBackgroundRetry();
     retryTimer.current = null;
     debounceTimer.current = null;
     retryCount.current = 0;
     setSaveError(null);
     doSave(data);
-  }, [data, doSave]);
+  }, [data, doSave, stopBackgroundRetry]);
 
   // Dismiss save error — next data change will trigger a new save attempt
   const clearError = useCallback(() => {
     setSaveError(null);
+    setSaveStatus('idle');
     retryCount.current = 0;
     if (retryTimer.current) {
       clearTimeout(retryTimer.current);
       retryTimer.current = null;
     }
+    // Don't stop background retry — it should keep trying silently
   }, []);
 
   // Sessions
@@ -349,6 +447,7 @@ export function useAppData() {
     error,
     loadError,
     saveError,
+    saveStatus,
     clearError,
     retrySave,
     addSession,

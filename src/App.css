@@ -164,3 +164,71 @@
 button {
   color: var(--text-primary);
 }
+
+/* Error hint (reassurance text in save error banner) */
+.error-hint {
+  font-size: 0.75rem;
+  opacity: 0.9;
+  margin-top: 2px;
+}
+
+/* Sidebar footer for save status */
+.sidebar-footer {
+  margin-top: auto;
+  padding: 12px 20px;
+  border-top: 1px solid var(--border-color);
+}
+
+/* Save status indicator */
+.save-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.save-status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.save-status--offline {
+  color: var(--text-secondary);
+}
+
+.save-status--offline .save-status-dot {
+  background: var(--text-secondary);
+}
+
+.save-status--saving {
+  color: var(--color-warning);
+}
+
+.save-status--saving .save-status-dot {
+  background: var(--color-warning);
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+.save-status--saved {
+  color: var(--color-success);
+}
+
+.save-status--saved .save-status-dot {
+  background: var(--color-success);
+}
+
+.save-status--error {
+  color: var(--color-danger);
+}
+
+.save-status--error .save-status-dot {
+  background: var(--color-danger);
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
