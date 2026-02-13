@@ -1306,10 +1306,10 @@
         },
         {
           "creditCardID": "00000000-0000-0000-0000-000000000101",
-          "amount": 54
+          "amount": 87
         }
       ],
-      "depositAmount": 89,
+      "depositAmount": 122,
       "withdrawalAmount": 0,
       "id": "cb8ef362-8200-4f1b-ae8a-bfd0994d12bc"
     },
