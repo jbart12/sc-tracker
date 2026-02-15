@@ -1510,7 +1510,9 @@
     },
     {
       "id": "d834b324-4e1e-4ba5-905b-d8cbbcec65ea",
-      "name": "Global Poker"
+      "name": "Global Poker",
+      "isActive": true,
+      "depositPresets": []
     },
     {
       "id": "7cf7c238-a9e4-46f0-a5bd-694ad0808652",
