@@ -755,7 +755,7 @@
     {
       "id": "import-2023-78d0f0e5",
       "date": "2023-12-31T12:00:00.000Z",
-      "casinoID": "0d358819-cf81-48da-825e-55d91787ec25",
+      "casinoID": "db33ed6d-a6be-4318-93db-d5dd5bbabf3c",
       "depositAmount": 226,
       "withdrawalAmount": 508,
       "cardDeposits": [
@@ -950,7 +950,7 @@
     {
       "id": "import-2024-04f4b38a",
       "date": "2024-12-31T12:00:00.000Z",
-      "casinoID": "0d358819-cf81-48da-825e-55d91787ec25",
+      "casinoID": "db33ed6d-a6be-4318-93db-d5dd5bbabf3c",
       "depositAmount": 144.5,
       "withdrawalAmount": 203,
       "cardDeposits": [
@@ -1633,10 +1633,6 @@
     {
       "id": "9481a82d-785d-410c-8e94-f0e87eea6856",
       "name": "Funrize"
-    },
-    {
-      "id": "0d358819-cf81-48da-825e-55d91787ec25",
-      "name": "Lucky Land"
     },
     {
       "id": "788a70f4-44a2-49c7-907e-3316b7d4d885",
