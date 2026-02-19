@@ -8,6 +8,43 @@ const PORT = process.env.PORT || 3001;
 const PROJECT_ROOT = process.env.PROJECT_ROOT || path.resolve(__dirname, '..');
 const DATA_FILE = process.env.DATA_FILE || path.join(PROJECT_ROOT, 'data', 'sc-tracker-data.json');
 const AUTO_COMMIT = process.env.AUTO_COMMIT !== 'false'; // Enable by default
+const GIT_DEBOUNCE_MS = 30000; // Commit at most every 30 seconds
+
+// --- Crash / error logging to file ---
+const LOG_DIR = path.join(PROJECT_ROOT, 'logs');
+const CRASH_LOG = path.join(LOG_DIR, 'crash.log');
+const SERVER_LOG = path.join(LOG_DIR, 'server.log');
+
+if (!fs.existsSync(LOG_DIR)) {
+  fs.mkdirSync(LOG_DIR, { recursive: true });
+}
+
+function logToFile(filepath, message) {
+  const timestamp = new Date().toISOString();
+  const entry = `[${timestamp}] ${message}\n`;
+  try {
+    fs.appendFileSync(filepath, entry);
+  } catch { /* ignore logging failures */ }
+}
+
+function logCrash(label, error) {
+  const stack = error instanceof Error ? error.stack : String(error);
+  const msg = `${label}\n${stack}\n${'─'.repeat(60)}`;
+  logToFile(CRASH_LOG, msg);
+  console.error(`${label}`, error);
+}
+
+function logServer(message) {
+  logToFile(SERVER_LOG, message);
+}
+
+// Capture uncaught exceptions — log to file then exit
+process.on('uncaughtException', (err) => {
+  logCrash('UNCAUGHT EXCEPTION', err);
+  logServer('Server crashed due to uncaught exception');
+  // Give the write a moment to flush, then exit
+  setTimeout(() => process.exit(1), 100);
+});
 
 app.use(express.json({ limit: '10mb' }));
 
@@ -64,28 +101,24 @@ function run(cmd) {
   });
 }
 
-// Separate queues: file writes must not block behind slow git operations
-let fileQueue = Promise.resolve();
-let gitQueue = Promise.resolve();
+// Debounced auto-commit: batches rapid saves into a single commit
+let gitCommitTimer = null;
+let gitRunning = false;
 
-function enqueueFileWrite(fn) {
-  fileQueue = fileQueue.then(fn).catch(err => {
-    console.error('File write queue error:', err.message);
-  });
-  return fileQueue;
-}
-
-function enqueueGitOp(fn) {
-  gitQueue = gitQueue.then(fn).catch(err => {
-    console.error('Git queue error:', err.message);
-  });
-  return gitQueue;
-}
-
-// Auto-commit and push data file changes (runs in git queue, never blocks saves)
-async function autoCommitAndPush() {
+function scheduleAutoCommit() {
   if (!AUTO_COMMIT) return;
+  if (gitCommitTimer) clearTimeout(gitCommitTimer);
+  gitCommitTimer = setTimeout(doAutoCommit, GIT_DEBOUNCE_MS);
+}
 
+async function doAutoCommit() {
+  gitCommitTimer = null;
+  if (gitRunning) {
+    // Another commit is in progress; reschedule so we don't miss this change
+    scheduleAutoCommit();
+    return;
+  }
+  gitRunning = true;
   try {
     const status = await run('git status --porcelain data/sc-tracker-data.json');
     if (!status) return;
@@ -97,25 +130,29 @@ async function autoCommitAndPush() {
     console.log('Auto-committed and pushed data changes');
   } catch (error) {
     console.error('Auto-commit failed:', error.message);
+  } finally {
+    gitRunning = false;
   }
 }
 
-// POST /api/data - Write data file
+// POST /api/data - Write data file (atomic: write tmp then rename)
 app.post('/api/data', (req, res) => {
   const data = req.body;
+  const tmpFile = DATA_FILE + '.tmp';
 
-  enqueueFileWrite(async () => {
-    try {
-      fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2));
-      res.json({ success: true });
+  try {
+    fs.writeFileSync(tmpFile, JSON.stringify(data, null, 2));
+    fs.renameSync(tmpFile, DATA_FILE);
+    res.json({ success: true });
 
-      // Auto-commit in separate git queue (never blocks file writes)
-      enqueueGitOp(autoCommitAndPush);
-    } catch (error) {
-      console.error('Error writing data file:', error);
-      res.status(500).json({ error: 'Failed to write data', detail: error.message });
-    }
-  });
+    // Schedule git commit (debounced, completely decoupled from response)
+    scheduleAutoCommit();
+  } catch (error) {
+    console.error('Error writing data file:', error);
+    // Clean up tmp file if it exists
+    try { fs.unlinkSync(tmpFile); } catch {} // eslint-disable-line no-empty
+    res.status(500).json({ error: 'Failed to write data', detail: error.message });
+  }
 });
 
 // Health check
@@ -125,38 +162,39 @@ app.get('/api/health', (req, res) => {
 
 // Express error middleware (4-param handler)
 app.use((err, req, res, _next) => {
-  console.error('Unhandled express error:', err);
+  logCrash(`EXPRESS ERROR on ${req.method} ${req.path}`, err);
   res.status(500).json({ error: 'Internal server error', detail: err.message });
 });
 
 const server = app.listen(PORT, () => {
   console.log(`SC Tracker API server running on port ${PORT}`);
   console.log(`Data file: ${DATA_FILE}`);
+  logServer(`Server started on port ${PORT} (PID: ${process.pid})`);
 });
 
-// Graceful shutdown — drain both queues before exiting
+// Graceful shutdown — wait for in-progress git op, flush pending commit
 function gracefulShutdown(signal) {
-  console.log(`\n${signal} received. Draining queues...`);
-  Promise.all([fileQueue, gitQueue])
-    .then(() => {
-      console.log('Queues drained. Shutting down.');
+  logServer(`${signal} received — shutting down (PID: ${process.pid})`);
+  console.log(`\n${signal} received. Shutting down...`);
+
+  // Flush any pending debounced commit immediately
+  if (gitCommitTimer) {
+    clearTimeout(gitCommitTimer);
+    gitCommitTimer = null;
+    // Fire the commit synchronously before exit
+    doAutoCommit().finally(() => {
       server.close(() => process.exit(0));
-      // Force exit after 5s if server.close hangs
       setTimeout(() => process.exit(0), 5000);
-    })
-    .catch(err => {
-      console.error('Error draining queues:', err.message);
-      process.exit(1);
     });
+  } else {
+    server.close(() => process.exit(0));
+    setTimeout(() => process.exit(0), 5000);
+  }
 }
 
 process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
 process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 
-process.on('uncaughtException', (err) => {
-  console.error('Uncaught exception:', err);
-});
-
 process.on('unhandledRejection', (reason) => {
-  console.error('Unhandled rejection:', reason);
+  logCrash('UNHANDLED REJECTION', reason);
 });

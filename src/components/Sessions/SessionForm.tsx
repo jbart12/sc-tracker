@@ -26,6 +26,7 @@ export function SessionForm({ session, onClose }: SessionFormProps) {
   const [casinoID, setCasinoID] = useState<string>(session?.casinoID || '');
   const [withdrawalAmount, setWithdrawalAmount] = useState(session?.withdrawalAmount.toString() || '');
   const [notes, setNotes] = useState(session?.notes || '');
+  const [quickAddAmounts, setQuickAddAmounts] = useState<Record<string, string>>({});
 
   // Initialize card deposits state
   const [cardDeposits, setCardDeposits] = useState<CardDepositFormState[]>(() => {
@@ -144,6 +145,18 @@ export function SessionForm({ session, onClose }: SessionFormProps) {
     setCardDeposits(prev => prev.filter(cd => cd.id !== id));
   };
 
+  // Quick-add a custom amount to a card deposit
+  const handleQuickAdd = (cardDepositId: string) => {
+    const addValue = parseFloat(quickAddAmounts[cardDepositId] || '');
+    if (!addValue || addValue <= 0) return;
+    setCardDeposits(prev => prev.map(cd => {
+      if (cd.id !== cardDepositId) return cd;
+      const current = parseFloat(cd.amount) || 0;
+      return { ...cd, amount: (current + addValue).toString() };
+    }));
+    setQuickAddAmounts(prev => ({ ...prev, [cardDepositId]: '' }));
+  };
+
   // Clear a card deposit amount
   const handleClearAmount = (id: string) => {
     setCardDeposits(prev => prev.map(cd =>
@@ -200,12 +213,15 @@ export function SessionForm({ session, onClose }: SessionFormProps) {
   return (
     <div className="modal-overlay">
       <div className="modal session-form-modal">
-        <div className="modal-header">
-          <h2>{isEdit ? 'Edit Session' : 'Start Session'}</h2>
-          <button type="button" className="modal-close" onClick={onClose}>&times;</button>
-        </div>
-
         <form onSubmit={handleSubmit}>
+          <div className="modal-header">
+            <h2>{isEdit ? 'Edit Session' : 'Start Session'}</h2>
+            <div className="modal-header-actions">
+              <button type="submit" className="btn-primary btn-header-save" disabled={!isValid}>Save</button>
+              <button type="button" className="modal-close" onClick={onClose}>&times;</button>
+            </div>
+          </div>
+          <div className="form-body">
           <div className="form-group">
             <label>Date</label>
             <input
@@ -292,6 +308,20 @@ export function SessionForm({ session, onClose }: SessionFormProps) {
                       </button>
                     )}
                   </div>
+                </div>
+
+                <div className="quick-add">
+                  <span className="quick-add-plus">+</span>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    placeholder="Add..."
+                    value={quickAddAmounts[cd.id] || ''}
+                    onChange={(e) => setQuickAddAmounts(prev => ({ ...prev, [cd.id]: e.target.value }))}
+                    onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleQuickAdd(cd.id); } }}
+                  />
+                  <button type="button" onClick={() => handleQuickAdd(cd.id)}>Add</button>
                 </div>
 
                 {selectedCasino?.depositPresets && selectedCasino.depositPresets.length > 0 && (
@@ -452,6 +482,7 @@ export function SessionForm({ session, onClose }: SessionFormProps) {
             <button type="submit" className="btn-primary" disabled={!isValid}>
               Save
             </button>
+          </div>
           </div>
         </form>
       </div>
