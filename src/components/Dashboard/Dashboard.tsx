@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
 import { calculateTax, calculateRTP, calculateCashback, calculateSessionCashback } from '../../utils/taxCalculator';
-import { filterByYear, filterByCasino, filterByCurrentWeek, getCurrentWeekRange, filterByMonth, getMonthRange, isPending, getTotalDeposit, getTotalForeignTransactionFees } from '../../utils/sessionUtils';
+import { filterByYear, filterByCasino, filterByCurrentWeek, getCurrentWeekRange, filterByMonth, getMonthRange, filterByDate, isPending, getTotalDeposit, getTotalForeignTransactionFees } from '../../utils/sessionUtils';
 import { formatCurrency, formatPercent } from '../../utils/formatters';
 import type { CasinoStats } from '../../models/types';
 import './Dashboard.css';
@@ -28,6 +28,10 @@ interface MonthlyStats extends PeriodStats {
   monthEnd: Date;
 }
 
+interface DailyStats extends PeriodStats {
+  date: string;
+}
+
 interface YearlyStats extends PeriodStats {
   year: number;
 }
@@ -39,6 +43,12 @@ export function Dashboard() {
   const { data, yearsWithSessions, isLoading } = useApp();
   const currentYear = new Date().getFullYear();
   const currentMonth = new Date().getMonth();
+
+  // Daily selector state
+  const [selectedDate, setSelectedDate] = useState(() => {
+    const now = new Date();
+    return now.toISOString().split('T')[0];
+  });
 
   // Monthly selector state
   const [selectedMonthYear, setSelectedMonthYear] = useState(currentYear);
@@ -84,6 +94,32 @@ export function Dashboard() {
       setSelectedMonth(availableMonths[0]);
     }
   }, [availableMonths, selectedMonth]);
+
+  const dailyStats = useMemo((): DailyStats => {
+    const daySessions = filterByDate(data.sessions, selectedDate);
+    const completedSessions = daySessions.filter(s => !isPending(s));
+
+    const totalDeposits = completedSessions.reduce((sum, s) => sum + getTotalDeposit(s), 0);
+    const totalWithdrawals = completedSessions.reduce((sum, s) => sum + s.withdrawalAmount, 0);
+    const totalForeignFees = completedSessions.reduce((sum, s) => sum + getTotalForeignTransactionFees(s), 0);
+    const netResult = totalWithdrawals - totalDeposits - totalForeignFees;
+    const totalCashback = calculateCashback(completedSessions, data.creditCards);
+    const netWithCashback = netResult + totalCashback;
+    const totalBet = totalDeposits * 3;
+
+    return {
+      sessionCount: completedSessions.length,
+      totalDeposits,
+      totalWithdrawals,
+      totalBet,
+      netResult,
+      netWithCashback,
+      totalCashback,
+      totalForeignFees,
+      rtpPercentage: calculateRTP(totalDeposits, totalWithdrawals),
+      date: selectedDate,
+    };
+  }, [data.sessions, data.creditCards, selectedDate]);
 
   const weeklyStats = useMemo((): WeeklyStats => {
     const { start, end } = getCurrentWeekRange();
@@ -237,6 +273,24 @@ export function Dashboard() {
 
   return (
     <div className="dashboard">
+      {/* Daily Stats */}
+      <div className="period-stats">
+        <div className="period-header">
+          <h3>Today</h3>
+          <input
+            type="date"
+            value={selectedDate}
+            onChange={(e) => setSelectedDate(e.target.value)}
+            className="period-picker"
+          />
+        </div>
+        {dailyStats.sessionCount > 0 ? (
+          <StatsGrid stats={dailyStats} />
+        ) : (
+          <p className="no-sessions">No sessions on {new Date(selectedDate + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</p>
+        )}
+      </div>
+
       {/* Weekly Stats */}
       <div className="period-stats">
         <div className="period-header">

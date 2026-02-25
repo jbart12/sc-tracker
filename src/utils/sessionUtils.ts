@@ -147,3 +147,7 @@ export function filterByCurrentMonth(sessions: Session[]): Session[] {
   const now = new Date();
   return filterByMonth(sessions, now.getFullYear(), now.getMonth());
 }
+
+export function filterByDate(sessions: Session[], dateString: string): Session[] {
+  return sessions.filter(s => s.date.slice(0, 10) === dateString);
+}
