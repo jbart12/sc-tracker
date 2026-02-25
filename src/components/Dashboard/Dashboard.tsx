@@ -57,6 +57,9 @@ export function Dashboard() {
   // Yearly selector state
   const [selectedYear, setSelectedYear] = useState(currentYear);
 
+  // Casino breakdown selector state ('all' or a year number)
+  const [casinoYearFilter, setCasinoYearFilter] = useState<'all' | number>('all');
+
   // Update selected years when data loads
   useEffect(() => {
     if (yearsWithSessions.length > 0) {
@@ -233,10 +236,10 @@ export function Dashboard() {
   );
 
   const casinoStats = useMemo((): CasinoStats[] => {
-    const yearSessions = filterByYear(data.sessions, selectedYear);
+    const baseSessions = casinoYearFilter === 'all' ? data.sessions : filterByYear(data.sessions, casinoYearFilter);
     return data.casinos
       .map(casino => {
-        const casinoSessions = filterByCasino(yearSessions, casino.id);
+        const casinoSessions = filterByCasino(baseSessions, casino.id);
         if (casinoSessions.length === 0) return null;
 
         // Total deposits includes all sessions
@@ -265,7 +268,7 @@ export function Dashboard() {
       })
       .filter((s): s is CasinoStats => s !== null)
       .sort((a, b) => b.totalProfit - a.totalProfit);
-  }, [data.sessions, data.casinos, data.creditCards, selectedYear]);
+  }, [data.sessions, data.casinos, data.creditCards, casinoYearFilter]);
 
   if (isLoading) {
     return <div className="dashboard"><p>Loading...</p></div>;
@@ -403,37 +406,55 @@ export function Dashboard() {
         )}
       </div>
 
-      {casinoStats.length > 0 && (
+      {data.sessions.length > 0 && (
         <div className="casino-breakdown">
-          <h3>By Casino</h3>
-          <div className="casino-header">
-            <span className="casino-name">Casino</span>
-            <span className="casino-sessions">Sessions</span>
-            <span className="casino-deposits">Deposits</span>
-            <span className="casino-withdrawals">Withdrawals</span>
-            <span className="casino-cashback">Cashback</span>
-            <span className="casino-result">Net</span>
-            <span className="casino-profit">Profit</span>
-            <span className="casino-rtp">RTP</span>
+          <div className="period-header">
+            <h3>By Casino</h3>
+            <select
+              value={casinoYearFilter}
+              onChange={(e) => setCasinoYearFilter(e.target.value === 'all' ? 'all' : Number(e.target.value))}
+              className="period-picker"
+            >
+              <option value="all">All Time</option>
+              {availableYears.map(year => (
+                <option key={year} value={year}>{year}</option>
+              ))}
+            </select>
           </div>
-          {casinoStats.map(stat => (
-            <div key={stat.casino.id} className="casino-row">
-              <span className="casino-name">{stat.casino.name}</span>
-              <span className="casino-sessions">{stat.sessionCount}</span>
-              <span className="casino-deposits">{formatCurrency(stat.totalDeposits)}</span>
-              <span className="casino-withdrawals">{formatCurrency(stat.totalWithdrawals)}</span>
-              <span className="casino-cashback">{formatCurrency(stat.cashback)}</span>
-              <span className={`casino-result ${stat.netResult >= 0 ? 'positive' : 'negative'}`}>
-                {formatCurrency(stat.netResult)}
-              </span>
-              <span className={`casino-profit ${stat.totalProfit >= 0 ? 'positive' : 'negative'}`}>
-                {formatCurrency(stat.totalProfit)}
-              </span>
-              <span className="casino-rtp">
-                {stat.rtpPercentage ? formatPercent(stat.rtpPercentage) : '-'}
-              </span>
-            </div>
-          ))}
+          {casinoStats.length > 0 ? (
+            <>
+              <div className="casino-header">
+                <span className="casino-name">Casino</span>
+                <span className="casino-sessions">Sessions</span>
+                <span className="casino-deposits">Deposits</span>
+                <span className="casino-withdrawals">Withdrawals</span>
+                <span className="casino-cashback">Cashback</span>
+                <span className="casino-result">Net</span>
+                <span className="casino-profit">Profit</span>
+                <span className="casino-rtp">RTP</span>
+              </div>
+              {casinoStats.map(stat => (
+                <div key={stat.casino.id} className="casino-row">
+                  <span className="casino-name">{stat.casino.name}</span>
+                  <span className="casino-sessions">{stat.sessionCount}</span>
+                  <span className="casino-deposits">{formatCurrency(stat.totalDeposits)}</span>
+                  <span className="casino-withdrawals">{formatCurrency(stat.totalWithdrawals)}</span>
+                  <span className="casino-cashback">{formatCurrency(stat.cashback)}</span>
+                  <span className={`casino-result ${stat.netResult >= 0 ? 'positive' : 'negative'}`}>
+                    {formatCurrency(stat.netResult)}
+                  </span>
+                  <span className={`casino-profit ${stat.totalProfit >= 0 ? 'positive' : 'negative'}`}>
+                    {formatCurrency(stat.totalProfit)}
+                  </span>
+                  <span className="casino-rtp">
+                    {stat.rtpPercentage ? formatPercent(stat.rtpPercentage) : '-'}
+                  </span>
+                </div>
+              ))}
+            </>
+          ) : (
+            <p className="no-sessions">No sessions{casinoYearFilter !== 'all' ? ` in ${casinoYearFilter}` : ''}</p>
+          )}
         </div>
       )}
     </div>
