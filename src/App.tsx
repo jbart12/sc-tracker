@@ -5,10 +5,11 @@ import { Dashboard } from './components/Dashboard/Dashboard';
 import { Sessions } from './components/Sessions/Sessions';
 import { Analytics } from './components/Analytics/Analytics';
 import { TaxReport } from './components/TaxReport/TaxReport';
+import { Cards } from './components/Cards/Cards';
 import { Settings } from './components/Settings/Settings';
 import './App.css';
 
-type Tab = 'dashboard' | 'sessions' | 'analytics' | 'taxReport' | 'settings';
+type Tab = 'dashboard' | 'sessions' | 'analytics' | 'taxReport' | 'cards' | 'settings';
 
 class AppErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean; error: Error | null }> {
   constructor(props: { children: ReactNode }) {
@@ -166,6 +167,15 @@ function App() {
             </li>
             <li>
               <button
+                className={activeTab === 'cards' ? 'active' : ''}
+                onClick={() => setActiveTab('cards')}
+              >
+                <span className="nav-icon">💳</span>
+                Cards
+              </button>
+            </li>
+            <li>
+              <button
                 className={activeTab === 'settings' ? 'active' : ''}
                 onClick={() => setActiveTab('settings')}
               >
@@ -183,6 +193,7 @@ function App() {
           {activeTab === 'sessions' && <Sessions />}
           {activeTab === 'analytics' && <Analytics />}
           {activeTab === 'taxReport' && <TaxReport />}
+          {activeTab === 'cards' && <Cards />}
           {activeTab === 'settings' && <Settings />}
         </main>
       </div>
