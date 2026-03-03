@@ -1761,11 +1761,11 @@
       "cardDeposits": [
         {
           "creditCardID": "8629b7f1-f30f-44e6-b30b-429eb777862c",
-          "amount": 4000
+          "amount": 6000
         },
         {
           "creditCardID": "00000000-0000-0000-0000-000000000101",
-          "amount": 5000
+          "amount": 3000
         }
       ],
       "depositAmount": 9000,
