@@ -1851,7 +1851,7 @@
         }
       ],
       "depositAmount": 10000,
-      "withdrawalAmount": 0,
+      "withdrawalAmount": 10000,
       "id": "224b7b2b-c39d-451e-a021-6d05160874b2"
     }
   ],
