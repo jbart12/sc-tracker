@@ -1864,7 +1864,7 @@
         }
       ],
       "depositAmount": 9000,
-      "withdrawalAmount": 0,
+      "withdrawalAmount": 8998,
       "id": "8b09e610-bcda-47e5-8b5a-d3be34193e15"
     },
     {
@@ -1877,7 +1877,7 @@
         }
       ],
       "depositAmount": 10000,
-      "withdrawalAmount": 0,
+      "withdrawalAmount": 10000,
       "id": "6e288314-5597-4d9c-84e4-a79530ce83b8"
     }
   ],
