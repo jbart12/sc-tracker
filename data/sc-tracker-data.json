@@ -1942,7 +1942,11 @@
       "cardDeposits": [
         {
           "creditCardID": "8629b7f1-f30f-44e6-b30b-429eb777862c",
-          "amount": 9000
+          "amount": 2000
+        },
+        {
+          "creditCardID": "00000000-0000-0000-0000-000000000101",
+          "amount": 7000
         }
       ],
       "depositAmount": 9000,
