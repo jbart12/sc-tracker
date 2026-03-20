@@ -2080,10 +2080,10 @@
       "cardDeposits": [
         {
           "creditCardID": "00000000-0000-0000-0000-000000000101",
-          "amount": 1775
+          "amount": 1785
         }
       ],
-      "depositAmount": 1775,
+      "depositAmount": 1785,
       "withdrawalAmount": 0,
       "id": "5363b567-0e5e-474e-9a75-3fa34978400f"
     }
