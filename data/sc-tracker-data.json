@@ -2240,7 +2240,7 @@
         }
       ],
       "depositAmount": 314.94,
-      "withdrawalAmount": 509.5,
+      "withdrawalAmount": 0,
       "id": "df52d5d5-a439-40ee-9605-f5a22953a06d"
     },
     {
@@ -2253,7 +2253,7 @@
         }
       ],
       "depositAmount": 9000,
-      "withdrawalAmount": 0,
+      "withdrawalAmount": 9000,
       "id": "e88da36a-2720-4021-9850-21268349972d"
     },
     {
