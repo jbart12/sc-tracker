@@ -2240,7 +2240,7 @@
         }
       ],
       "depositAmount": 314.94,
-      "withdrawalAmount": 0,
+      "withdrawalAmount": 509.5,
       "id": "df52d5d5-a439-40ee-9605-f5a22953a06d"
     },
     {
@@ -2270,17 +2270,43 @@
       "id": "849b17e9-723c-497f-a825-e11cf20e3a57"
     },
     {
-      "date": "2026-04-01T12:00:00.000Z",
+      "date": "2026-03-30T12:00:00.000Z",
       "casinoID": "bc3915e7-2efb-43f5-adc6-52e5133e7c03",
       "cardDeposits": [
         {
-          "creditCardID": "8629b7f1-f30f-44e6-b30b-429eb777862c",
+          "creditCardID": "00000000-0000-0000-0000-000000000101",
           "amount": 9000
         }
       ],
       "depositAmount": 9000,
+      "withdrawalAmount": 9000,
+      "id": "ae5c5971-6a3e-4594-a2d9-f1b25480cd72"
+    },
+    {
+      "date": "2026-03-30T12:00:00.000Z",
+      "casinoID": "d834b324-4e1e-4ba5-905b-d8cbbcec65ea",
+      "cardDeposits": [
+        {
+          "creditCardID": "00000000-0000-0000-0000-000000000101",
+          "amount": 10000
+        }
+      ],
+      "depositAmount": 10000,
+      "withdrawalAmount": 10000,
+      "id": "7ce2a2f9-cce2-4fa2-9ae5-ffdd0e1428c9"
+    },
+    {
+      "date": "2026-04-01T12:00:00.000Z",
+      "casinoID": "d834b324-4e1e-4ba5-905b-d8cbbcec65ea",
+      "cardDeposits": [
+        {
+          "creditCardID": "00000000-0000-0000-0000-000000000101",
+          "amount": 4500
+        }
+      ],
+      "depositAmount": 4500,
       "withdrawalAmount": 0,
-      "id": "8cd0aae0-2501-435a-aa41-03a15e3831e4"
+      "id": "ca373488-275f-4609-aa8d-0b2f1a3dfcbf"
     }
   ],
   "casinos": [
