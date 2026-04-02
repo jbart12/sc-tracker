@@ -75,12 +75,12 @@ if (!fs.existsSync(dataDir)) {
   fs.mkdirSync(dataDir, { recursive: true });
 }
 
-// GET /api/data - Read data file
+// GET /api/data - Read data file (injects current dataVersion)
 app.get('/api/data', (req, res) => {
   try {
     if (fs.existsSync(DATA_FILE)) {
-      const data = fs.readFileSync(DATA_FILE, 'utf8');
-      res.json(JSON.parse(data));
+      const data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
+      res.json({ ...data, dataVersion: currentDataVersion });
     } else {
       // Return null if no data file exists yet
       res.json(null);
@@ -135,20 +135,57 @@ async function doAutoCommit() {
   }
 }
 
+// In-memory data version counter — increments on every successful write
+let currentDataVersion = 0;
+
+// Initialize version from file on startup
+try {
+  if (fs.existsSync(DATA_FILE)) {
+    const startupData = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
+    currentDataVersion = startupData.dataVersion || 0;
+  }
+} catch { /* start at 0 if anything fails */ }
+
+// GET /api/data - Read data file
+// (patched below to inject dataVersion)
+
 // POST /api/data - Write data file (atomic: write tmp then rename)
+// Rejects stale writes (409 Conflict) when client's dataVersion is behind.
 app.post('/api/data', (req, res) => {
   const data = req.body;
+  const clientVersion = data.dataVersion;
   const tmpFile = DATA_FILE + '.tmp';
 
+  // If client sends a dataVersion, verify it matches current
+  if (clientVersion !== undefined && clientVersion !== currentDataVersion) {
+    // Client is stale — return 409 with the current server data so client can reload
+    console.log(`Stale write rejected: client version ${clientVersion}, server version ${currentDataVersion}`);
+    try {
+      const currentData = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
+      return res.status(409).json({
+        error: 'Stale data',
+        detail: 'Another tab has saved newer data. Reloading.',
+        currentData: { ...currentData, dataVersion: currentDataVersion },
+      });
+    } catch (readErr) {
+      return res.status(500).json({ error: 'Failed to read current data', detail: readErr.message });
+    }
+  }
+
   try {
-    fs.writeFileSync(tmpFile, JSON.stringify(data, null, 2));
+    // Increment version and stamp it into the data
+    currentDataVersion++;
+    const dataToWrite = { ...data, dataVersion: currentDataVersion };
+    fs.writeFileSync(tmpFile, JSON.stringify(dataToWrite, null, 2));
     fs.renameSync(tmpFile, DATA_FILE);
-    res.json({ success: true });
+    res.json({ success: true, dataVersion: currentDataVersion });
 
     // Schedule git commit (debounced, completely decoupled from response)
     scheduleAutoCommit();
   } catch (error) {
     console.error('Error writing data file:', error);
+    // Rollback version on failure
+    currentDataVersion--;
     // Clean up tmp file if it exists
     try { fs.unlinkSync(tmpFile); } catch {} // eslint-disable-line no-empty
     res.status(500).json({ error: 'Failed to write data', detail: error.message });

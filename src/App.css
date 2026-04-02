@@ -24,6 +24,18 @@
   background: #d97706;
 }
 
+.error-banner--stale {
+  background: #2563eb;
+}
+
+.error-banner--stale button {
+  color: #2563eb;
+}
+
+.error-banner--stale button:hover {
+  background: #dbeafe;
+}
+
 .error-banner-actions {
   display: flex;
   gap: 8px;

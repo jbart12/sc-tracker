@@ -45,13 +45,26 @@ class AppErrorBoundary extends Component<{ children: ReactNode }, { hasError: bo
 }
 
 function ErrorBanner() {
-  const { loadError, saveError, clearError, retrySave } = useApp();
+  const { loadError, saveError, clearError, retrySave, staleDataReloaded, dismissStaleWarning } = useApp();
 
   if (loadError) {
     return (
       <div className="error-banner">
         <strong>Connection Error:</strong> {loadError}
         <button onClick={() => window.location.reload()}>Reload</button>
+      </div>
+    );
+  }
+
+  if (staleDataReloaded) {
+    return (
+      <div className="error-banner error-banner--stale">
+        <div>
+          <strong>Data Reloaded:</strong> This tab had outdated data (another tab saved newer changes). Your latest edit was not saved. The page has been refreshed with the current data.
+        </div>
+        <div className="error-banner-actions">
+          <button className="error-banner-dismiss" onClick={dismissStaleWarning}>Got it</button>
+        </div>
       </div>
     );
   }

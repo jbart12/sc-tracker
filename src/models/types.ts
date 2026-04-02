@@ -43,6 +43,7 @@ export interface AppData {
   casinos: Casino[];
   creditCards: CreditCard[];
   schemaVersion: number;
+  dataVersion?: number; // Optimistic concurrency version — incremented on each save
 }
 
 export interface TaxCalculation {

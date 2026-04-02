@@ -343,8 +343,18 @@ export async function loadAppDataAsync(): Promise<AppData> {
   return getDefaultAppData();
 }
 
-// Save data to API
-export async function saveAppDataAsync(data: AppData): Promise<void> {
+// Error subclass for stale-data conflicts (409)
+export class StaleDataError extends Error {
+  currentData: AppData;
+  constructor(currentData: AppData) {
+    super('Data was modified in another tab. Reloading latest data.');
+    this.name = 'StaleDataError';
+    this.currentData = currentData;
+  }
+}
+
+// Save data to API — returns the new dataVersion on success
+export async function saveAppDataAsync(data: AppData): Promise<number | undefined> {
   let response: Response;
   try {
     response = await fetchWithTimeout(`${API_BASE}/data`, {
@@ -358,9 +368,26 @@ export async function saveAppDataAsync(data: AppData): Promise<void> {
     throw new Error(classifyError(err));
   }
 
+  if (response.status === 409) {
+    // Stale write — server has newer data
+    const body = await response.json();
+    if (body.currentData) {
+      throw new StaleDataError(migrate(body.currentData));
+    }
+    throw new Error('Data was modified in another tab. Please reload.');
+  }
+
   if (!response.ok) {
     const detail = await parseErrorDetail(response);
     throw new Error(`Failed to save data (HTTP ${response.status}): ${detail}`);
+  }
+
+  // Return the new version from the server
+  try {
+    const body = await response.json();
+    return body.dataVersion;
+  } catch {
+    return undefined;
   }
 }
 

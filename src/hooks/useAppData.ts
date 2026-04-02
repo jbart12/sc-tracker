@@ -6,6 +6,7 @@ import {
   generateId,
   stashEmergencyBackup,
   clearEmergencyBackup,
+  StaleDataError,
 } from '../services/persistence';
 
 const SAVE_DEBOUNCE_MS = 500;
@@ -21,6 +22,7 @@ export function useAppData() {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
+  const [staleDataReloaded, setStaleDataReloaded] = useState(false);
 
   // Refs for debounce and retry
   const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -89,19 +91,39 @@ export function useAppData() {
       savedResetTimer.current = null;
     }
     try {
-      await saveAppDataAsync(dataToSave);
-      // Success — clear save error and retry count
+      const newVersion = await saveAppDataAsync(dataToSave);
+      // Success — update dataVersion, clear save error and retry count
       isSaving.current = false;
       hasUnsavedChanges.current = false;
       setSaveError(null);
       setSaveStatus('saved');
       clearEmergencyBackup();
       stopBackgroundRetry();
+      // Update the dataVersion in state so next save uses it
+      if (newVersion !== undefined) {
+        setData(prev => prev ? { ...prev, dataVersion: newVersion } : prev);
+      }
       // Auto-reset to idle after 2s
       savedResetTimer.current = setTimeout(() => setSaveStatus('idle'), 2000);
       retryCount.current = 0;
     } catch (err: any) {
       isSaving.current = false;
+
+      // Handle stale data conflict — reload from server and alert the user
+      if (err instanceof StaleDataError) {
+        console.warn('Stale data detected — reloading from server');
+        isFirstLoad.current = true; // Prevent the setData from triggering another save
+        setData(err.currentData);
+        hasUnsavedChanges.current = false;
+        setSaveError(null);
+        setSaveStatus('idle');
+        setStaleDataReloaded(true);
+        stopBackgroundRetry();
+        clearEmergencyBackup();
+        retryCount.current = 0;
+        return;
+      }
+
       const message = err?.message || 'Save failed';
       console.error(`Save failed (attempt ${attempt + 1}/${MAX_RETRIES}):`, message);
 
@@ -207,6 +229,10 @@ export function useAppData() {
     setSaveError(null);
     doSave(data);
   }, [data, doSave, stopBackgroundRetry]);
+
+  const dismissStaleWarning = useCallback(() => {
+    setStaleDataReloaded(false);
+  }, []);
 
   // Dismiss save error — next data change will trigger a new save attempt
   const clearError = useCallback(() => {
@@ -448,6 +474,8 @@ export function useAppData() {
     loadError,
     saveError,
     saveStatus,
+    staleDataReloaded,
+    dismissStaleWarning,
     clearError,
     retrySave,
     addSession,
