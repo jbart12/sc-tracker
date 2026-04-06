@@ -35,6 +35,7 @@ export function useAppData() {
   const hasUnsavedChanges = useRef(false);
   const latestData = useRef<AppData | null>(null);
   const isFirstLoad = useRef(true);
+  const dataVersionRef = useRef<number | undefined>(undefined);
 
   // Keep latestData in sync
   useEffect(() => {
@@ -53,7 +54,7 @@ export function useAppData() {
       const current = latestData.current || dataToSave;
       isSaving.current = true;
       setSaveStatus('saving');
-      saveAppDataAsync(current)
+      saveAppDataAsync({ ...current, dataVersion: dataVersionRef.current })
         .then(() => {
           isSaving.current = false;
           hasUnsavedChanges.current = false;
@@ -99,9 +100,9 @@ export function useAppData() {
       setSaveStatus('saved');
       clearEmergencyBackup();
       stopBackgroundRetry();
-      // Update the dataVersion in state so next save uses it
+      // Update the dataVersion ref so next save uses it (don't use setData to avoid re-triggering save)
       if (newVersion !== undefined) {
-        setData(prev => prev ? { ...prev, dataVersion: newVersion } : prev);
+        dataVersionRef.current = newVersion;
       }
       // Auto-reset to idle after 2s
       savedResetTimer.current = setTimeout(() => setSaveStatus('idle'), 2000);
@@ -112,6 +113,7 @@ export function useAppData() {
       // Handle stale data conflict — reload from server and alert the user
       if (err instanceof StaleDataError) {
         console.warn('Stale data detected — reloading from server');
+        dataVersionRef.current = err.currentData.dataVersion;
         isFirstLoad.current = true; // Prevent the setData from triggering another save
         setData(err.currentData);
         hasUnsavedChanges.current = false;
@@ -167,7 +169,7 @@ export function useAppData() {
     }
     debounceTimer.current = setTimeout(() => {
       debounceTimer.current = null;
-      doSave(dataToSave);
+      doSave({ ...dataToSave, dataVersion: dataVersionRef.current });
     }, SAVE_DEBOUNCE_MS);
   }, [doSave]);
 
@@ -175,6 +177,7 @@ export function useAppData() {
   useEffect(() => {
     loadAppDataAsync()
       .then(apiData => {
+        dataVersionRef.current = apiData.dataVersion;
         setData(apiData);
         setLoadError(null);
         setIsLoading(false);
@@ -227,7 +230,7 @@ export function useAppData() {
     debounceTimer.current = null;
     retryCount.current = 0;
     setSaveError(null);
-    doSave(data);
+    doSave({ ...data, dataVersion: dataVersionRef.current });
   }, [data, doSave, stopBackgroundRetry]);
 
   const dismissStaleWarning = useCallback(() => {
