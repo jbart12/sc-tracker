@@ -2387,7 +2387,7 @@
       "id": "6088e8b2-620c-48a6-b552-1ac186cae21b"
     },
     {
-      "date": "2026-04-07T12:00:00.000Z",
+      "date": "2026-04-06T12:00:00.000Z",
       "casinoID": "d834b324-4e1e-4ba5-905b-d8cbbcec65ea",
       "cardDeposits": [
         {
@@ -2422,7 +2422,7 @@
         }
       ],
       "depositAmount": 4500,
-      "withdrawalAmount": 0,
+      "withdrawalAmount": 4500,
       "id": "8291b6c2-7d6f-4a3e-a57d-4a395a130a69"
     }
   ],
@@ -2596,5 +2596,5 @@
       "archivedAt": "2026-02-04T13:40:32.842Z"
     }
   ],
-  "dataVersion": 366006
+  "dataVersion": 366008
 }
