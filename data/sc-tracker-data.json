@@ -2424,6 +2424,19 @@
       "depositAmount": 4500,
       "withdrawalAmount": 4406,
       "id": "8291b6c2-7d6f-4a3e-a57d-4a395a130a69"
+    },
+    {
+      "date": "2026-04-10T12:00:00.000Z",
+      "casinoID": "bc3915e7-2efb-43f5-adc6-52e5133e7c03",
+      "cardDeposits": [
+        {
+          "creditCardID": "9ee7c893-3722-4b16-a681-895f1be273b3",
+          "amount": 9000
+        }
+      ],
+      "depositAmount": 9000,
+      "withdrawalAmount": 0,
+      "id": "ca230b74-a8b1-4b48-8a88-812484744844"
     }
   ],
   "casinos": [
@@ -2577,6 +2590,12 @@
       "cashbackPercentage": 2,
       "isActive": true,
       "id": "7d0fdfa6-0e6e-4015-86e6-0e8052fc110b"
+    },
+    {
+      "name": "US Bank Smartly",
+      "cashbackPercentage": 2,
+      "isActive": true,
+      "id": "9ee7c893-3722-4b16-a681-895f1be273b3"
     }
   ],
   "schemaVersion": 8,
@@ -2596,5 +2615,5 @@
       "archivedAt": "2026-02-04T13:40:32.842Z"
     }
   ],
-  "dataVersion": 366013
+  "dataVersion": 366015
 }
