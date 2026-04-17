@@ -2465,7 +2465,7 @@
       "id": "27ec0722-321d-4e79-acd2-645f0b3c37f5"
     },
     {
-      "date": "2026-04-16T12:00:00.000Z",
+      "date": "2026-04-15T12:00:00.000Z",
       "casinoID": "d834b324-4e1e-4ba5-905b-d8cbbcec65ea",
       "cardDeposits": [
         {
@@ -2654,5 +2654,5 @@
       "archivedAt": "2026-02-04T13:40:32.842Z"
     }
   ],
-  "dataVersion": 366030
+  "dataVersion": 366032
 }
