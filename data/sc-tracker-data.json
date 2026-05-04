@@ -2565,7 +2565,7 @@
         }
       ],
       "depositAmount": 8500,
-      "withdrawalAmount": 0,
+      "withdrawalAmount": 8500,
       "id": "8bb773f8-b3fa-4e9c-ae57-ef7c183e5a59"
     }
   ],
@@ -2745,5 +2745,5 @@
       "archivedAt": "2026-02-04T13:40:32.842Z"
     }
   ],
-  "dataVersion": 366054
+  "dataVersion": 366055
 }
